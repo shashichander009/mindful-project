@@ -1,12 +1,5 @@
 # Mindful Social media
 
-## Team Members
-
-* Aditya
-* Rohit
-* Preetam
-* Shashi
-
 ## Abstract
 
 Mindful is a microblogging and social media platform for general public to share their thoughts in text and image format. Users can filter posts based on their mood and their interests. Apart from that, users can customise their feed by following other uses. Mindful believes in safe space so abusive posts and users can be reported and suspended.
