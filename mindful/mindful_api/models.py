@@ -41,11 +41,12 @@ class Post(models.Model):
 class Followings(models.Model):
     following_id = models.AutoField(primary_key=True)
     follower_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    followed_by_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    followed_by_id = models.ForeignKey(User, on_delete=models.CASCADE,
+                                       related_name='followers')
     follow_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.follower_by_id} is following {self.followed_id}'
+        return f'{self.followed_by_id} is following {self.followed_id}'
 
 
 class Likes(models.Model):

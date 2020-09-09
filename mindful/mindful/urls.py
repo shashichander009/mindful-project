@@ -14,14 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-<<<<<<< HEAD
 from django.urls import path
 from django.conf.urls.static import static
 from mindful import settings
-=======
 from django.urls import path, include
 
->>>>>>> c5829006644e227cd4f637ca4d8cd3b5b0a35134
 
 urlpatterns = [
     path('admin/', admin.site.urls),

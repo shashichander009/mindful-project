@@ -84,7 +84,7 @@ WSGI_APPLICATION = 'mindful.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Mindfuldb',
+        'NAME': 'mindfuldb',
         'USER': 'mindful',
         'PASSWORD': 'mindful',
         'HOST': 'localhost',
