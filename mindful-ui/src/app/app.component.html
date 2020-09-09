@@ -1,6 +1,15 @@
-<div style="text-align:center" class="content">
-    <h1>
-        Welcome to {{title}}!
-    </h1>
-</div>
-<router-outlet></router-outlet>
+<ng-container *ngIf="loggedIn; else signUpTemplate">
+
+    <app-header></app-header>
+    <mat-sidenav-container class="content">
+        <mat-sidenav opened disableClose>Start</mat-sidenav>
+        <mat-sidenav-content> Main
+            <router-outlet></router-outlet>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+
+</ng-container>
+
+<ng-template #signUpTemplate>
+    <app-auth-main></app-auth-main>
+</ng-template>

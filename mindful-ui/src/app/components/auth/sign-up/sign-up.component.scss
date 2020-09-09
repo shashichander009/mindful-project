@@ -1,0 +1,75 @@
+.email-field {
+    grid-area: email;
+}
+
+.username-field {
+    grid-area: username;
+}
+
+.dob-field {
+    grid-area: dob;
+}
+
+.password-field {
+    grid-area: password;
+}
+
+.c-password-field {
+    grid-area: c-password;
+}
+
+.next-btn {
+    grid-area: next-btn;
+    justify-self: end;
+}
+
+.basic-info-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "email email"
+        "username dob"
+        "password c-password"
+        ". next-btn";
+    gap: 2px 20px;
+}
+
+.profile-picture {
+    grid-area: profile-picture;
+    width: 150px;
+    height: 150px;
+    padding: 10px;
+
+    img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        display: inline-block;
+    }
+}
+
+.name-field {
+    grid-area: name-field;
+}
+
+.bio-field {
+    grid-area: bio-field;
+}
+
+.submit-btn {
+    grid-area: submit-btn;
+    justify-self: end;
+    padding: 10px;
+}
+
+.basic-profile-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "profile-picture name-field"
+        "profile-picture bio-field"
+        ". submit-btn";
+    gap: 2px 20px;
+    justify-items: center;
+    align-items: center;
+}

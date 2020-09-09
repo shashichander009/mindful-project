@@ -1,0 +1,85 @@
+<form [formGroup]="signUpForm" (ngSubmit)="onFormSubmit()">
+
+    <div [ngSwitch]="currentPage">
+        <div *ngSwitchCase="1">
+            <div class="basic-info-container">
+                <mat-form-field class="email-field" appearance="outline">
+                    <mat-label>Email</mat-label>
+                    <input matInput formControlName="email">
+                    <mat-icon matSuffix>email</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field class="username-field" appearance="outline">
+                    <mat-label>User Name</mat-label>
+                    <input matInput formControlName="username">
+                </mat-form-field>
+
+                <mat-form-field class="dob-field" appearance="outline">
+                    <mat-label>Choose a date</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="dateOfBirth">
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+
+                <ng-container formGroupName="passwords">
+                    <mat-form-field class="password-field" appearance="outline">
+                        <mat-label>Password</mat-label>
+                        <input type="password" matInput formControlName="password">
+                        <mat-icon matSuffix>lock</mat-icon>
+                    </mat-form-field>
+
+                    <mat-form-field class="c-password-field" appearance="outline">
+                        <mat-label>Confirm Password</mat-label>
+                        <input type="password" matInput formControlName="confirmPassword">
+                        <mat-icon matSuffix>lock</mat-icon>
+                    </mat-form-field>
+                </ng-container>
+
+
+
+                <div class="next-btn">
+                    <button type="button" [disabled]="!signUpForm.valid" mat-raised-button color="primary"
+                        (click)="changePage(2)">Next</button>
+                </div>
+
+            </div>
+        </div>
+        <div *ngSwitchCase="2">
+            <div class="basic-profile-container">
+                <div class="profile-picture">
+                    <img [src]="userPicture" alt="">
+
+                    <button type="button" mat-button (click)="openFilePicker.click()">Update Picture</button>
+                    <div style="display: none;">
+                        <input type="file" accept="image/*" formControlName="profilePicture" #openFilePicker
+                            (change)="showPreview($event)">
+                    </div>
+                </div>
+
+                <mat-form-field class="name-field" appearance="outline">
+                    <mat-label>Full Name</mat-label>
+                    <input matInput formControlName="name">
+                </mat-form-field>
+
+                <mat-form-field class="bio-field" appearance="outline">
+                    <mat-label>Bio</mat-label>
+                    <textarea matInput [mat-autosize]=true [matAutosizeMinRows]=5 placeholder="Ex. It makes me feel..."
+                        formControlName="bio"></textarea>
+                </mat-form-field>
+
+                <div class="submit-btn">
+                    <button type="submit" mat-raised-button color="primary">Submit</button>
+                </div>
+
+            </div>
+
+        </div>
+        <div *ngSwitchDefault>output2</div>
+    </div>
+
+
+
+
+</form>
+
+<!-- <button (click)="changePage(2)"> changePage </button> -->
