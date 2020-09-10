@@ -21,7 +21,7 @@ class User(models.Model):
     def get_hashed_password(password):
         return make_password(password)
 
-    def validate_password(password, hashed_password):
+    def validate_password(self, password, hashed_password):
         return check_password(password, hashed_password)
 
 
