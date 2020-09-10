@@ -18,7 +18,7 @@ class User(models.Model):
     def __str__(self):
         return f'username: {self.username}'
 
-    def get_hashed_password(password):
+    def get_hashed_password(self, password):
         return make_password(password)
 
     def validate_password(self, password, hashed_password):
