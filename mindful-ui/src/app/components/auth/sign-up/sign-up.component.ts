@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators, AbstractControl, FormGroup } from '@angular/forms';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
 
 @Component({
@@ -17,7 +17,7 @@ export class SignUpComponent implements OnInit {
     username: ['', [Validators.required, Validators.minLength(2)]],
     dateOfBirth: ['', Validators.required],
     passwords: this.formBuilder.group({
-      password: ['', [Validators.required]],
+      password: ['', [Validators.required, Validators.minLength(4)]],
       confirmPassword: ['', [Validators.required]]
     }, { validator: this.matchPassword }),
     profilePicture: [''],
@@ -31,10 +31,14 @@ export class SignUpComponent implements OnInit {
     this.setDefaultPicture()
   }
 
-  get email() { return this.signUpForm.get('email')?.value }
-  get username() { return this.signUpForm.get('username')?.value }
-  get password() { return this.signUpForm.get('password')?.value }
-  get confirmPassword() { return this.signUpForm.get('confirmPassword')?.value }
+  get email() { return this.signUpForm.get('email') }
+  get username() { return this.signUpForm.get('username') }
+  get password() { return this.signUpForm.get('passwords.password') }
+  get dateOfBirth() { return this.signUpForm.get('dateOfBirth') }
+  get name() { return this.signUpForm.get('name') }
+  get bio() { return this.signUpForm.get('bio') }
+  get profilePicture() { return this.userPicture }
+
 
   matchPassword(f: FormGroup) {
     let password = f.get('password')?.value
@@ -43,11 +47,22 @@ export class SignUpComponent implements OnInit {
   }
 
   onFormSubmit() {
-    console.log(this.signUpForm.value)
+    if (this.signUpForm.invalid) {
+      this.changePage(1)
+    }
+    const userDetails = {
+      username: this.username?.value,
+      email: this.email?.value,
+      password: this.password?.value,
+      dateOfBirth: this.dateOfBirth?.value,
+      name: this.name?.value,
+      bio: this.bio?.value,
+      profilePicture: this.profilePicture,
+    }
+    console.log(JSON.stringify(userDetails))
   }
 
   changePage(page: number) {
-    console.log(page)
     this.currentPage = page
   }
 
@@ -60,10 +75,7 @@ export class SignUpComponent implements OnInit {
       const reader = new FileReader();
       reader.readAsDataURL(event.target.files[0]);
       reader.onload = (e: any) => this.userPicture = e.target.result;
-      // this.imageService.selectedImage$.next(event.target.files[0] as File);
     } else {
-      // this.setImage();
-      // this.imageService.selectedImage$.next(null);
       this.setDefaultPicture()
     }
   }

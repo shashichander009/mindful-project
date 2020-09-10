@@ -1,0 +1,20 @@
+.sign-in-email {
+    grid-area: sign-in-email;
+}
+
+.sign-in-password {
+    grid-area: sign-in-password;
+}
+
+.sign-in-btn {
+    grid-area: sign-in-btn;
+}
+
+.sign-in-field-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+        "sign-in-email"
+        "sign-in-password"
+        "sign-in-btn";
+}
