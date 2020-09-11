@@ -1,9 +1,9 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.models import AbstractUser
 
 
-class User(models.Model):
+class User(AbstractUser):
     user_id = models.AutoField(primary_key=True)
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=16, unique=True)
@@ -17,12 +17,6 @@ class User(models.Model):
 
     def __str__(self):
         return f'username: {self.username}'
-
-    def get_hashed_password(self, password):
-        return make_password(password)
-
-    def validate_password(self, password, hashed_password):
-        return check_password(password, hashed_password)
 
 
 class Post(models.Model):
