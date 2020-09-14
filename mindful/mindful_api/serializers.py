@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model  # for custom user model
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from .models import User
+from .models import User, Post
 
 
 class LoginSerializer(serializers.Serializer):
@@ -67,3 +67,32 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'password': {'write_only': True}
         }
+
+
+class PostSerializer(serializers.ModelSerializer):
+    
+    def create(self, validate_data):
+        post = Post.objects.create(
+            content=validate_data['content'],
+            user_id=self.context.get("user"),
+            tags={"sample_tag_key": "sample_value"}
+        )
+
+        return post
+
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance
+
+    class Meta:
+        model = Post
+        fields = [
+            'post_id',
+            'content',
+            'image',
+            'has_media',
+            'created_at',
+            'user_id',
+        ]

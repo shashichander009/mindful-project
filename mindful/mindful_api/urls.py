@@ -22,4 +22,6 @@ urlpatterns = [
          name='token_refresh'),
     path('signup/', views.SignupView.as_view(), name='signup'),
     path('users/', views.UserView.as_view(), name='users'),
+    path('post/', views.PostView.as_view(), name='post'),
+    path('post/<post_id>/', views.SinglePostView.as_view(), name='single-post'),
 ]
