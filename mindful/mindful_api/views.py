@@ -77,3 +77,25 @@ class SignupView(APIView):
         users = User.objects.all()
         user_serializer = UserSerializer(users, many=True)
         return JsonResponse(user_serializer.data, safe=False)
+
+
+class UserView(APIView):
+
+    def get(self, request):
+        requestdict = dict(request.GET)
+        if "username" in requestdict:
+            username = request.GET["username"]
+            user = User.objects.filter(username=username)
+            reqtype = "username"
+        if "email" in requestdict:
+            email = request.GET["email"]
+            user = User.objects.filter(email=email)
+            reqtype = "email"
+        data = {}
+        if not user:
+            data['response'] = reqtype + " available "
+            status = 200
+        else:
+            data['response'] = reqtype + " already taken"
+            status = 404
+        return Response(data, status)
