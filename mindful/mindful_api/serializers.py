@@ -16,18 +16,19 @@ class LoginSerializer(serializers.Serializer):
         password = data.get('password', '')
 
         if username and password:
-            try:
-                user = User.objects.get(username=username)
-                hashed_password = user.password
-                if user.validate_password(password, hashed_password):
+            user = authenticate(username=username, password=password)
+            if user:
+                if user.is_active:
                     data['user'] = user
                 else:
-                    raise exceptions.ValidationError("Incorrect Password")
-            except User.DoesNotExist:
-                raise exceptions.ValidationError("user does not exist")
+                    msg = "User Inactive"
+                    raise exceptions.ValidationError(msg)
+            else:
+                msg = "Incorrect credentials"
+                raise exceptions.ValidationError(msg)
         else:
-            raise exceptions.ValidationError(
-                "Must Provide username and pasword both")
+            msg = "Must Provide username and pasword both"
+            raise exceptions.ValidationError(msg)
         return data
 
 
@@ -35,7 +36,6 @@ UserModel = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
-
 
     def create(self, validate_data):
         print(validate_data)

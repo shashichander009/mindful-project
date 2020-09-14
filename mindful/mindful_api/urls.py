@@ -11,15 +11,15 @@ app_name = 'api'
 
 urlpatterns = [
     path('hello/', views.HelloWorld.as_view(), name='hello-world'),
-    path('hello2/', views.HelloWorld2.as_view(), name='hello-world2'),
     path('doc/', schema_view),
     path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
-    path('token/',
-         jwt_views.TokenObtainPairView.as_view(),
-         name='token_obtain_pair'),
+#     path('token/',
+#          jwt_views.TokenObtainPairView.as_view(),
+#          name='token_obtain_pair'),
     path('token/refresh/',
          jwt_views.TokenRefreshView.as_view(),
          name='token_refresh'),
     path('signup/', views.SignupView.as_view(), name='signup'),
+    path('users/', views.UserView.as_view(), name='users'),
 ]
