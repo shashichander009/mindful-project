@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import login as django_login, logout as django_logout
 
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -69,14 +70,10 @@ class SignupView(APIView):
     def post(self, request):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
+            print(user_serializer)
             user_serializer.save()
-            return JsonResponse(user_serializer.data)
-        return JsonResponse(user_serializer.errors, status=400)
-
-    def get(self, request):
-        users = User.objects.all()
-        user_serializer = UserSerializer(users, many=True)
-        return JsonResponse(user_serializer.data, safe=False)
+            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
+        return JsonResponse(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserView(APIView):

@@ -16,6 +16,8 @@ class CustomUserManager(BaseUserManager):
         user = self.model(username=username, email=nor_email)
         user.set_password(password)
         user.is_admin = is_admin
+        if is_admin:
+            user.is_superuser = True
         user.save()
         return user
 
@@ -47,10 +49,10 @@ class User(AbstractBaseUser):
     name = models.CharField(max_length=128, null=True)
     date_of_birth = models.DateField(null=True)
     bio = models.CharField(max_length=256, null=True)
-    profile_picture = models.ImageField(upload_to=upload_location_users, null=True)
+    profile_picture = models.ImageField(upload_to='user_images/', null=True)
     allow_posting = models.BooleanField(default=True)
     last_active = models.DateTimeField(auto_now_add=True)
-    is_superuser = models.BooleanField(default=True)
+    is_superuser = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'username'
