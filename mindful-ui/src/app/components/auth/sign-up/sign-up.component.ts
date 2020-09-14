@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { UserService } from 'src/app/services/user.service';
 
 
 @Component({
@@ -25,7 +26,7 @@ export class SignUpComponent implements OnInit {
     bio: [''],
   })
 
-  constructor(private formBuilder: FormBuilder) { }
+  constructor(private formBuilder: FormBuilder, private userService: UserService) { }
 
   ngOnInit(): void {
     this.setDefaultPicture()
@@ -59,7 +60,8 @@ export class SignUpComponent implements OnInit {
       bio: this.bio?.value,
       profilePicture: this.profilePicture,
     }
-    console.log(JSON.stringify(userDetails))
+    // console.log(JSON.stringify(userDetails))
+    this.userService.signUp(JSON.stringify(userDetails))
   }
 
   changePage(page: number) {

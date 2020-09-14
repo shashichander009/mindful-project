@@ -48,7 +48,7 @@ class LoginView(APIView):
         jwt = TokenObtainPairSerializer.get_token(user=user)
 
         token = {
-            'refresh': str(jwt), 
+            'refresh': str(jwt),
             'access': str(jwt.access_token)
         }
 
@@ -82,20 +82,29 @@ class SignupView(APIView):
 class UserView(APIView):
 
     def get(self, request):
+        data = {}
         requestdict = dict(request.GET)
+
         if "username" in requestdict:
             username = request.GET["username"]
             user = User.objects.filter(username=username)
             reqtype = "username"
-        if "email" in requestdict:
+
+        elif "email" in requestdict:
             email = request.GET["email"]
             user = User.objects.filter(email=email)
             reqtype = "email"
-        data = {}
+
+        else:
+            data['response'] = "No/Bad Parameters"
+            status = 404
+            return Response(data, status)
+
         if not user:
             data['response'] = reqtype + " available "
             status = 200
         else:
             data['response'] = reqtype + " already taken"
             status = 404
+
         return Response(data, status)
