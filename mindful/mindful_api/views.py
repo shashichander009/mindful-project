@@ -9,6 +9,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework_swagger import renderers
 from rest_framework.schemas import SchemaGenerator
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .serializers import LoginSerializer, UserSerializer
 from .models import User
@@ -21,23 +23,17 @@ class HelloWorld(APIView):
     API Documentation testing Hello World
     """
 
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticated, )
 
     def get(self, request, format=None):
+
+        # header = JWTAuthentication.get_header(self, request=request)
+        # raw_token = JWTAuthentication.get_raw_token(self, header=header)
+        # val_token = JWTAuthentication.get_validated_token(self, raw_token=raw_token)
+        # user = JWTAuthentication.get_user(self, validated_token=val_token)
+        # print(user.user_id)
 
         respose = "Hello World"
-
-        return JsonResponse(respose, safe=False)
-
-
-class HelloWorld2(APIView):
-    """
-    API Documentation testing Hello World 2
-    """
-
-    def get(self, request, format=None):
-
-        respose = "Hello World from SECOND CLASS"
 
         return JsonResponse(respose, safe=False)
 
@@ -48,8 +44,15 @@ class LoginView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         django_login(request, user)
-        token = "token"  # TO DO send back JWT Token
-        return Response({"token": token}, status=200)
+
+        jwt = TokenObtainPairSerializer.get_token(user=user)
+
+        token = {
+            'refresh': str(jwt), 
+            'access': str(jwt.access_token)
+        }
+
+        return JsonResponse({"token": token}, status=200)
 
 
 class LogoutView(APIView):

@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'mindful_api',
     'rest_framework',
     'rest_framework_swagger',
-    'rest_framework.authtoken'
 ]
 
 REST_FRAMEWORK = {
@@ -90,6 +89,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    'USER_ID_FIELD': 'user_id',
 }
 
 
