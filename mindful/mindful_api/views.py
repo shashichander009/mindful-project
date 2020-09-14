@@ -47,14 +47,15 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
-        # django_login(request, user)
-        # token =
-        # token, created = Token.objects.get_or_create(user=user)
-        # return Response({"token": token.key}, status=200)
-        return Response({"token": "token"}, status=200)
+        django_login(request, user)
+        token = "token"  # TO DO send back JWT Token
+        return Response({"token": token}, status=200)
 
 
 class LogoutView(APIView):
+
+    permission_classes = (IsAuthenticated, )
+
     def post(self, request):
         django_logout(request)
         return Response(status=204)
