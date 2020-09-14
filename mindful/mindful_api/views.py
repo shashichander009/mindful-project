@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import login as django_login, logout as django_logout
+from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -13,8 +14,15 @@ from rest_framework.schemas import SchemaGenerator
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .serializers import LoginSerializer, UserSerializer
-from .models import User
+from .serializers import (
+    LoginSerializer, 
+    UserSerializer, 
+    PostSerializer,
+)
+from .models import (
+    User, 
+    Post,
+)
 
 # Create your views here.
 
@@ -27,12 +35,6 @@ class HelloWorld(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, format=None):
-
-        # header = JWTAuthentication.get_header(self, request=request)
-        # raw_token = JWTAuthentication.get_raw_token(self, header=header)
-        # val_token = JWTAuthentication.get_validated_token(self, raw_token=raw_token)
-        # user = JWTAuthentication.get_user(self, validated_token=val_token)
-        # print(user.user_id)
 
         respose = "Hello World"
 
@@ -65,17 +67,6 @@ class LogoutView(APIView):
         return Response(status=204)
 
 
-class SignupView(APIView):
-
-    def post(self, request):
-        user_serializer = UserSerializer(data=request.data)
-        if user_serializer.is_valid():
-            print(user_serializer)
-            user_serializer.save()
-            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
-        return JsonResponse(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class UserView(APIView):
 
     def get(self, request):
@@ -105,3 +96,66 @@ class UserView(APIView):
             status = 404
 
         return Response(data, status)
+
+    def post(self, request):
+        user_serializer = UserSerializer(data=request.data)
+        if user_serializer.is_valid():
+            print(user_serializer)
+            user_serializer.save()
+            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
+        return JsonResponse(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+def get_user_from_jwt(self, request):
+
+    header = JWTAuthentication.get_header(self, request=request)
+    raw_token = JWTAuthentication.get_raw_token(self, header=header)
+    val_token = JWTAuthentication.get_validated_token(self, raw_token=raw_token)
+    user = JWTAuthentication.get_user(self, validated_token=val_token)
+
+    return user
+
+
+class PostView(APIView):
+
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request):
+        posts = Post.objects.all()
+        post_serializer = PostSerializer(posts, many=True)
+        return JsonResponse(post_serializer.data, safe=False)
+
+
+    def post(self, request):
+        user = get_user_from_jwt(self, request)
+        post_serializer = PostSerializer(data=request.data, context={"user": user})
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return JsonResponse({"response": "Post Created"}, status=201)
+        return JsonResponse(post_serializer.errors, status=400)
+
+
+class SinglePostView(APIView):
+
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, post_id):
+        post = get_object_or_404(Post, post_id=post_id)
+        post_serializer = PostSerializer(post)
+        return JsonResponse(post_serializer.data, status=200)
+
+
+    def patch(self, request, post_id):
+        post = get_object_or_404(Post, post_id=post_id)
+        post_serializer = PostSerializer(post, data=request.data, partial=True)
+        if post_serializer.is_valid():
+            post_serializer.save()
+            return JsonResponse({"response": "Post Updated"}, status=200)
+        return JsonResponse(post_serializer.errors, status=400)
+
+
+    def delete(self, request, post_id):
+        post = get_object_or_404(Post, post_id=post_id)
+        post.delete()
+        return JsonResponse({"response": "Post Deleted"}, status=200)    
