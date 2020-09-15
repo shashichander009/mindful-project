@@ -10,10 +10,12 @@
 
 mat-card {
     width: 400px;
+    margin-top: -200px;
 }
 
 mat-tab-group {
     width: 600px;
+    margin-top: -200px;
 }
 
 .tab-content-container {
@@ -28,7 +30,12 @@ mat-tab-group {
         gap: 10px 20px;
     }
 
+    mat-card {
+        margin-top: 50px;
+    }
+
     mat-tab-group {
         width: 90%;
+        margin: 50px auto;
     }
 }

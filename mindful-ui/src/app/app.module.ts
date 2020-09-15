@@ -26,6 +26,7 @@ import { AuthMainComponent } from './components/auth/auth-main/auth-main.compone
 import { SignUpComponent } from './components/auth/sign-up/sign-up.component';
 import { SignInComponent } from './components/auth/sign-in/sign-in.component';
 import { MatNativeDateModule } from '@angular/material/core';
+import { HomeComponent } from './components/home/home.component';
 
 
 @NgModule({
@@ -35,6 +36,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     AuthMainComponent,
     SignUpComponent,
     SignInComponent,
+    HomeComponent,
   ],
   imports: [
     BrowserModule,
