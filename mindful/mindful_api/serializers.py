@@ -21,18 +21,9 @@ class LoginSerializer(serializers.Serializer):
         if username and password:
             user = authenticate(username=username, password=password)
             if user:
-                if user.is_active:
-                    data['user'] = user
-                else:
-                    msg = "User Inactive"
-                    raise exceptions.ValidationError(msg)
-            else:
-                msg = "Incorrect credentials"
-                raise exceptions.ValidationError(msg)
-        else:
-            msg = "Must Provide username and pasword both"
-            raise exceptions.ValidationError(msg)
-        return data
+                return {"user": user}
+
+        raise exceptions.ValidationError()
 
 
 UserModel = get_user_model()

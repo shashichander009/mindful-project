@@ -25,20 +25,22 @@ from .models import (
 
 
 class LoginView(APIView):
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
-        django_login(request, user)
 
-        jwt = TokenObtainPairSerializer.get_token(user=user)
+        if serializer.is_valid():
+            user = serializer.validated_data.get('user', '')
+            django_login(request, user)
 
-        token = {
-            'refresh': str(jwt),
-            'access': str(jwt.access_token)
-        }
-
-        return JsonResponse(token, status=status.HTTP_200_OK)
+            jwt = TokenObtainPairSerializer.get_token(user=user)
+            token = {
+                'refresh': str(jwt),
+                'access': str(jwt.access_token)
+            }
+            return JsonResponse(token, status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Login Failed"},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
 
 class LogoutView(APIView):
@@ -47,7 +49,8 @@ class LogoutView(APIView):
 
     def post(self, request):
         django_logout(request)
-        return Response(status=204)
+        return JsonResponse({"detail": "Logout Successful"},
+                            status=status.HTTP_200_OK)
 
 
 class UserView(APIView):
@@ -56,17 +59,17 @@ class UserView(APIView):
         request_data = request.GET
 
         if 'username' in request_data:
-            user = User.objects.filter(username=request_data.get('username', ''))
+            user = User.objects.filter(
+                username=request_data.get('username', ''))
 
         if 'email' in request_data:
             user = User.objects.filter(email=request_data.get('email', ''))
 
         if user:
             return JsonResponse({"detail": "Already Used"},
-                            status=status.HTTP_226_IM_USED)
+                                status=status.HTTP_226_IM_USED)
         return JsonResponse({"detail": "Available"},
-                    status=status.HTTP_200_OK)
-    
+                            status=status.HTTP_200_OK)
 
     def post(self, request):
         user_serializer = UserSerializer(data=request.data)
