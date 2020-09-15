@@ -39,10 +39,6 @@ UserModel = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validate_data):
-        image_data = validate_data["profile_picture"]
-        format, imgstr = image_data.split(';base64,') 
-        ext = format.split('/')[-1] 
-        profile_picture = ContentFile(base64.b64decode(imgstr), name='user_img.' + ext)
         user = UserModel.objects.create(
             email=validate_data['email'],
             username=validate_data['username'],
@@ -50,9 +46,10 @@ class UserSerializer(serializers.ModelSerializer):
             date_of_birth=validate_data['date_of_birth'],
             bio=validate_data['bio'],
             is_admin=validate_data['is_admin'],
-            profile_picture=profile_picture,
+            profile_picture=validate_data["profile_picture"],
         )
         user.set_password(validate_data['password'])
+        user.save()
 
         return user
 
