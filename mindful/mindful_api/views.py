@@ -53,32 +53,20 @@ class LogoutView(APIView):
 class UserView(APIView):
 
     def get(self, request):
-        data = {}
-        requestdict = dict(request.GET)
+        request_data = request.GET
 
-        if "username" in requestdict:
-            username = request.GET["username"]
-            user = User.objects.filter(username=username)
-            reqtype = "username"
+        if 'username' in request_data:
+            user = User.objects.filter(username=request_data.get('username', ''))
 
-        elif "email" in requestdict:
-            email = request.GET["email"]
-            user = User.objects.filter(email=email)
-            reqtype = "email"
+        if 'email' in request_data:
+            user = User.objects.filter(email=request_data.get('email', ''))
 
-        else:
-            data['response'] = "No/Bad Parameters"
-            status = 404
-            return Response(data, status)
-
-        if not user:
-            data['response'] = reqtype + " available "
-            status = 200
-        else:
-            data['response'] = reqtype + " already taken"
-            status = 404
-
-        return Response(data, status)
+        if user:
+            return JsonResponse({"detail": "Already Used"},
+                            status=status.HTTP_226_IM_USED)
+        return JsonResponse({"detail": "Available"},
+                    status=status.HTTP_200_OK)
+    
 
     def post(self, request):
         user_serializer = UserSerializer(data=request.data)
