@@ -1,44 +1,27 @@
-from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth import login as django_login, logout as django_logout
+from django.contrib.auth import (
+    login as django_login,
+    logout as django_logout
+)
 from django.shortcuts import get_object_or_404
-
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_swagger import renderers
-from rest_framework.schemas import SchemaGenerator
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .serializers import (
-    LoginSerializer, 
-    UserSerializer, 
+    LoginSerializer,
+    UserSerializer,
     PostSerializer,
 )
 from .models import (
-    User, 
+    User,
     Post,
 )
 
 # Create your views here.
-
-
-class HelloWorld(APIView):
-    """
-    API Documentation testing Hello World
-    """
-
-    permission_classes = (IsAuthenticated, )
-
-    def get(self, request, format=None):
-
-        respose = "Hello World"
-
-        return JsonResponse(respose, safe=False)
 
 
 class LoginView(APIView):
@@ -55,7 +38,7 @@ class LoginView(APIView):
             'access': str(jwt.access_token)
         }
 
-        return JsonResponse({"token": token}, status=200)
+        return JsonResponse(token, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
@@ -100,62 +83,102 @@ class UserView(APIView):
     def post(self, request):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
-            print(user_serializer)
             user_serializer.save()
-            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
-        return JsonResponse(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return JsonResponse(user_serializer.data,
+                                status=status.HTTP_201_CREATED)
+        return JsonResponse(user_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_user_from_jwt(self, request):
+    """Retrieve user object from incoming JWT"""
 
     header = JWTAuthentication.get_header(self, request=request)
     raw_token = JWTAuthentication.get_raw_token(self, header=header)
-    val_token = JWTAuthentication.get_validated_token(self, raw_token=raw_token)
+    val_token = JWTAuthentication.get_validated_token(self,
+                                                      raw_token=raw_token)
     user = JWTAuthentication.get_user(self, validated_token=val_token)
 
     return user
 
 
+def convert_has_media_to_boolean(has_media):
+    """Convert incoming has_media from string to boolean"""
+
+    true_values = ['true', 'yes', 't', 'y']
+    if has_media.lower() in true_values:
+        return True
+    return False
+
+
 class PostView(APIView):
+    """API for fetching all post and creating new post"""
 
     permission_classes = (IsAuthenticated, )
 
     def get(self, request):
-        posts = Post.objects.all()
+        posts = Post.objects.all().order_by('-created_at')
         post_serializer = PostSerializer(posts, many=True)
-        return JsonResponse(post_serializer.data, safe=False)
-
+        return JsonResponse(post_serializer.data,
+                            status=status.HTTP_200_OK,
+                            safe=False)
 
     def post(self, request):
         user = get_user_from_jwt(self, request)
-        post_serializer = PostSerializer(data=request.data, context={"user": user})
+        request.data['user_id'] = user.user_id
+
+        has_media = request.data.get('has_media', '')
+        request.data['has_media'] = convert_has_media_to_boolean(has_media)
+
+        post_serializer = PostSerializer(data=request.data)
         if post_serializer.is_valid():
             post_serializer.save()
-            return JsonResponse({"response": "Post Created"}, status=201)
-        return JsonResponse(post_serializer.errors, status=400)
+            return JsonResponse({"detail": "Post Created"},
+                                status=status.HTTP_201_CREATED)
+        return JsonResponse({"detail": "Post Not Created"},
+                            status=status.HTTP_417_EXPECTATION_FAILED)
 
 
 class SinglePostView(APIView):
+    """API to fetch, update and delete a specific post"""
 
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
         post_serializer = PostSerializer(post)
-        return JsonResponse(post_serializer.data, status=200)
-
+        return JsonResponse(post_serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
-        post_serializer = PostSerializer(post, data=request.data, partial=True)
+
+        request_user = get_user_from_jwt(self, request)
+        if not post.user_id == request_user:
+            return JsonResponse({"detail": "Unauthorized"},
+                                status=status.HTTP_401_UNAUTHORIZED)
+
+        has_media = request.data.get('has_media', '')
+        request.data['has_media'] = convert_has_media_to_boolean(has_media)
+
+        post_serializer = PostSerializer(post,
+                                         data=request.data,
+                                         partial=True)
+
         if post_serializer.is_valid():
             post_serializer.save()
-            return JsonResponse({"response": "Post Updated"}, status=200)
-        return JsonResponse(post_serializer.errors, status=400)
-
+            return JsonResponse({"detail": "Post Updated"},
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Post Not Updated"},
+                            status=status.HTTP_417_EXPECTATION_FAILED)
 
     def delete(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
+
+        request_user = get_user_from_jwt(self, request)
+        if not post.user_id == request_user:
+            return JsonResponse({"detail": "Unauthorized"},
+                                status=status.HTTP_401_UNAUTHORIZED)
+
         post.delete()
-        return JsonResponse({"response": "Post Deleted"}, status=200)    
+        return JsonResponse({"detail": "Post Deleted"},
+                            status=status.HTTP_200_OK)

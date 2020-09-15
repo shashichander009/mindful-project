@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.postgres.fields import JSONField
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.db.models.signals import post_delete, pre_save
+from django.dispatch import receiver
 
 
 class CustomUserManager(BaseUserManager):
@@ -83,7 +85,7 @@ class User(AbstractBaseUser):
 class Post(models.Model):
     post_id = models.AutoField(primary_key=True)
     content = models.TextField(max_length=256, null=True)
-    image = models.ImageField(upload_to=upload_location_posts, null=True)
+    image = models.ImageField(upload_to="post_images/", null=True)
     has_media = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     tags = JSONField()
@@ -91,6 +93,11 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.post_id} is posted by {self.user_id}'
+
+
+@receiver(post_delete, sender=Post)
+def auto_delete_img_on_post_delete(sender, instance, **kwargs):
+    instance.image.delete(False)
 
 
 class Followings(models.Model):
