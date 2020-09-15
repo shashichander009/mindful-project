@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model  # for custom user model
 from rest_framework import serializers
 from rest_framework import exceptions
 
-import base64
 from .models import User, Post
 
 
@@ -64,7 +63,8 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'profile_picture',
             'last_active',
-            'is_admin',]
+            'is_admin',
+        ]
 
         extra_kwargs = {
             'password': {'write_only': True},
@@ -73,7 +73,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    
+
     def create(self, validate_data):
         post = Post.objects.create(
             content=validate_data['content'],
@@ -82,7 +82,6 @@ class PostSerializer(serializers.ModelSerializer):
         )
 
         return post
-
 
     def update(self, instance, validated_data):
         instance.content = validated_data.get('content', instance.content)

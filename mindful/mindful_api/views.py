@@ -1,44 +1,23 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import login as django_login, logout as django_logout
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework_swagger import renderers
-from rest_framework.schemas import SchemaGenerator
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .serializers import (
-    LoginSerializer, 
-    UserSerializer, 
+    LoginSerializer,
+    UserSerializer,
     PostSerializer,
 )
 from .models import (
-    User, 
+    User,
     Post,
 )
-
-# Create your views here.
-
-
-class HelloWorld(APIView):
-    """
-    API Documentation testing Hello World
-    """
-
-    permission_classes = (IsAuthenticated, )
-
-    def get(self, request, format=None):
-
-        respose = "Hello World"
-
-        return JsonResponse(respose, safe=False)
 
 
 class LoginView(APIView):
@@ -102,16 +81,18 @@ class UserView(APIView):
         if user_serializer.is_valid():
             print(user_serializer)
             user_serializer.save()
-            return JsonResponse(user_serializer.data,status=status.HTTP_201_CREATED)
-        return JsonResponse(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return JsonResponse(user_serializer.data,
+                                status=status.HTTP_201_CREATED)
+        return JsonResponse(user_serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_user_from_jwt(self, request):
 
     header = JWTAuthentication.get_header(self, request=request)
     raw_token = JWTAuthentication.get_raw_token(self, header=header)
-    val_token = JWTAuthentication.get_validated_token(self, raw_token=raw_token)
+    val_token = JWTAuthentication.get_validated_token(
+        self, raw_token=raw_token)
     user = JWTAuthentication.get_user(self, validated_token=val_token)
 
     return user
@@ -126,10 +107,10 @@ class PostView(APIView):
         post_serializer = PostSerializer(posts, many=True)
         return JsonResponse(post_serializer.data, safe=False)
 
-
     def post(self, request):
         user = get_user_from_jwt(self, request)
-        post_serializer = PostSerializer(data=request.data, context={"user": user})
+        post_serializer = PostSerializer(
+            data=request.data, context={"user": user})
         if post_serializer.is_valid():
             post_serializer.save()
             return JsonResponse({"response": "Post Created"}, status=201)
@@ -145,7 +126,6 @@ class SinglePostView(APIView):
         post_serializer = PostSerializer(post)
         return JsonResponse(post_serializer.data, status=200)
 
-
     def patch(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
         post_serializer = PostSerializer(post, data=request.data, partial=True)
@@ -154,8 +134,7 @@ class SinglePostView(APIView):
             return JsonResponse({"response": "Post Updated"}, status=200)
         return JsonResponse(post_serializer.errors, status=400)
 
-
     def delete(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
         post.delete()
-        return JsonResponse({"response": "Post Deleted"}, status=200)    
+        return JsonResponse({"response": "Post Deleted"}, status=200)
