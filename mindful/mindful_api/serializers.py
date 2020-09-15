@@ -41,20 +41,20 @@ UserModel = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validate_data):
-        # image_data = validate_data["profile_picture"]
-        # format, imgstr = image_data.split(';base64,') 
-        # ext = format.split('/')[-1] 
-        # profile_picture = ContentFile(base64.b64decode(imgstr), name='user_img.' + ext)
         user = UserModel.objects.create(
-            email=validate_data['email'],
-            username=validate_data['username'],
-            name=validate_data['name'],
-            date_of_birth=validate_data['date_of_birth'],
-            bio=validate_data['bio'],
-            # is_admin=validate_data['is_admin'],
-            # profile_picture=profile_picture,
+            email=validate_data.get('email', ''),
+            username=validate_data.get('username', ''),
+            name=validate_data.get('name', ''),
+            date_of_birth=validate_data.get('date_of_birth', ''),
+            bio=validate_data.get('bio', ''),
         )
-        user.set_password(validate_data['password'])
+
+        incoming_img = validate_data.get('profile_picture', '')
+        filename, ext = os.path.splitext(incoming_img.name)
+        incoming_img.name = '{}{}'.format(user.user_id, ext)
+
+        user.profile_picture = incoming_img
+        user.set_password(validate_data.get('password', ''))
         user.save()
         
         return user
@@ -70,11 +70,10 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'profile_picture',
             'last_active',
-            'is_admin',]
+        ]
 
         extra_kwargs = {
-            'password': {'write_only': True},
-            'is_admin': {'write_only': True}
+            'password': {'write_only': True}
         }
 
 

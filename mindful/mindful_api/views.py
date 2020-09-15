@@ -72,10 +72,10 @@ class UserView(APIView):
         user_serializer = UserSerializer(data=request.data)
         if user_serializer.is_valid():
             user_serializer.save()
-            return JsonResponse(user_serializer.data,
+            return JsonResponse({"detail": "User Created"},
                                 status=status.HTTP_201_CREATED)
-        return JsonResponse(user_serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+        return JsonResponse({"detail": "User Not Created"},
+                            status=status.HTTP_417_EXPECTATION_FAILED)
 
 
 def get_user_from_jwt(self, request):
