@@ -6,7 +6,6 @@ from django.contrib.auth import (
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -147,6 +146,8 @@ class SinglePostView(APIView):
         if not post.user_id == request_user:
             return JsonResponse({"detail": "Unauthorized"},
                                 status=status.HTTP_401_UNAUTHORIZED)
+
+        request.data._mutable = True
 
         has_media = request.data.get('has_media', '')
         request.data['has_media'] = convert_has_media_to_boolean(has_media)

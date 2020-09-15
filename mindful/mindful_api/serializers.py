@@ -1,9 +1,7 @@
 import os
-import base64
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
-from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework import exceptions
 
@@ -47,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
         user.profile_picture = incoming_img
         user.set_password(validate_data.get('password', ''))
         user.save()
-        
+
         return user
 
     class Meta:
@@ -69,7 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    
+
     def create(self, validate_data):
         post = Post.objects.create(
             content=validate_data.get('content', ''),
@@ -89,7 +87,6 @@ class PostSerializer(serializers.ModelSerializer):
 
         return post
 
-
     def update(self, instance, validated_data):
         instance.content = validated_data.get("content", instance.content)
 
@@ -108,7 +105,6 @@ class PostSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
 
     class Meta:
         model = Post

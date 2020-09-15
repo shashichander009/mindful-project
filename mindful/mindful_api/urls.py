@@ -17,5 +17,7 @@ urlpatterns = [
          name='token_refresh'),
     path('users/', views.UserView.as_view(), name='users'),
     path('post/', views.PostView.as_view(), name='post'),
-    path('post/<post_id>/', views.SinglePostView.as_view(), name='single-post'),
+    path('post/<post_id>/',
+         views.SinglePostView.as_view(),
+         name='single-post'),
 ]
