@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { formatDate } from '@angular/common';
 import { UserService } from 'src/app/services/user.service';
 
 
@@ -12,6 +13,7 @@ export class SignUpComponent implements OnInit {
   currentPage = 1;
 
   userPicture: string = ''
+  profile_picture_selected: File | undefined;
 
   signUpForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
@@ -38,7 +40,7 @@ export class SignUpComponent implements OnInit {
   get dateOfBirth() { return this.signUpForm.get('dateOfBirth') }
   get name() { return this.signUpForm.get('name') }
   get bio() { return this.signUpForm.get('bio') }
-  get profilePicture() { return this.userPicture }
+  get profilePicture() { return this.profile_picture_selected }
 
 
   matchPassword(f: FormGroup) {
@@ -51,17 +53,21 @@ export class SignUpComponent implements OnInit {
     if (this.signUpForm.invalid) {
       this.changePage(1)
     }
-    const userDetails = {
-      username: this.username?.value,
-      email: this.email?.value,
-      password: this.password?.value,
-      dateOfBirth: this.dateOfBirth?.value,
-      name: this.name?.value,
-      bio: this.bio?.value,
-      profilePicture: this.profilePicture,
-    }
-    // console.log(JSON.stringify(userDetails))
-    this.userService.signUp(JSON.stringify(userDetails))
+ 
+    const formattedDate = formatDate(this.dateOfBirth?.value, 'yyyy-MM-dd', 'en-IN')
+
+    const formData = new FormData();
+
+    formData.append("username", this.username?.value);
+    formData.append("email", this.email?.value);
+    formData.append("password", this.password?.value);
+    formData.append("date_of_birth", formattedDate);
+    formData.append("name", this.name?.value);
+    formData.append("bio", this.bio?.value);
+    formData.append("profile_picture", this.profilePicture as File);
+
+    this.userService.signUp(formData)
+  
   }
 
   changePage(page: number) {
@@ -77,6 +83,7 @@ export class SignUpComponent implements OnInit {
       const reader = new FileReader();
       reader.readAsDataURL(event.target.files[0]);
       reader.onload = (e: any) => this.userPicture = e.target.result;
+      this.profile_picture_selected = event.target.files[0]
     } else {
       this.setDefaultPicture()
     }
