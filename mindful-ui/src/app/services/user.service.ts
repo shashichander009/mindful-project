@@ -9,35 +9,35 @@ import { TokenService } from './token.service';
 })
 export class UserService {
 
-  user_uri = 'http://127.0.0.1:8000/api/users/'
-  login_uri = 'http://127.0.0.1:8000/api/login/'
+  userURI = 'http://127.0.0.1:8000/api/users/';
+  loginURI = 'http://127.0.0.1:8000/api/login/';
 
   constructor(private http: HttpClient, private tokenService: TokenService, private router: Router) { }
 
 
   signUp(data: FormData) {
-    this.http.post(this.user_uri, data, { observe: 'response' }).subscribe((res) => {
-      console.log(res)
-    })
+    this.http.post(this.userURI, data, { observe: 'response' }).subscribe((res) => {
+      console.log(res);
+    });
   }
 
   login(data: any) {
 
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
-    })
+    });
 
-    this.http.post(this.login_uri, data, { observe: 'response', headers: headers }).subscribe((res) => {
+    this.http.post(this.loginURI, data, { observe: 'response', headers }).subscribe((res) => {
       if (res.status === 200) {
-        const response_token = res.body as Token
-        this.tokenService.setAccessToken(response_token.token.access)
-        this.tokenService.setRefreshToken(response_token.token.refresh)
+        const responseToken = res.body as Token;
+        this.tokenService.setAccessToken(responseToken.token.access);
+        this.tokenService.setRefreshToken(responseToken.token.refresh);
         this.router.navigate(['/']);
       } else if (res.status === 401) {
         if (this.tokenService.getAccessToken()) {
           this.router.navigate(['/']);
         }
       }
-    })
+    });
   }
 }

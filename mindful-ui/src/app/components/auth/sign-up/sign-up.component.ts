@@ -12,8 +12,8 @@ import { UserService } from 'src/app/services/user.service';
 export class SignUpComponent implements OnInit {
   currentPage = 1;
 
-  userPicture: string = ''
-  profile_picture_selected: File | undefined;
+  userPicture = '';
+  selectedProfilePicture: File | undefined;
 
   signUpForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
@@ -26,56 +26,56 @@ export class SignUpComponent implements OnInit {
     profilePicture: [''],
     name: [''],
     bio: [''],
-  })
+  });
 
   constructor(private formBuilder: FormBuilder, private userService: UserService) { }
 
   ngOnInit(): void {
-    this.setDefaultPicture()
+    this.setDefaultPicture();
   }
 
-  get email() { return this.signUpForm.get('email') }
-  get username() { return this.signUpForm.get('username') }
-  get password() { return this.signUpForm.get('passwords.password') }
-  get dateOfBirth() { return this.signUpForm.get('dateOfBirth') }
-  get name() { return this.signUpForm.get('name') }
-  get bio() { return this.signUpForm.get('bio') }
-  get profilePicture() { return this.profile_picture_selected }
+  get email() { return this.signUpForm.get('email'); }
+  get username() { return this.signUpForm.get('username'); }
+  get password() { return this.signUpForm.get('passwords.password'); }
+  get dateOfBirth() { return this.signUpForm.get('dateOfBirth'); }
+  get name() { return this.signUpForm.get('name'); }
+  get bio() { return this.signUpForm.get('bio'); }
+  get profilePicture() { return this.selectedProfilePicture; }
 
 
   matchPassword(f: FormGroup) {
-    let password = f.get('password')?.value
-    let confirmPassword = f.get('confirmPassword')?.value
-    return password === confirmPassword ? null : { notSame: true }
+    const password = f.get('password')?.value;
+    const confirmPassword = f.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { notSame: true };
   }
 
   onFormSubmit() {
     if (this.signUpForm.invalid) {
-      this.changePage(1)
+      this.changePage(1);
     }
- 
-    const formattedDate = formatDate(this.dateOfBirth?.value, 'yyyy-MM-dd', 'en-IN')
+
+    const formattedDate = formatDate(this.dateOfBirth?.value, 'yyyy-MM-dd', 'en-IN');
 
     const formData = new FormData();
 
-    formData.append("username", this.username?.value);
-    formData.append("email", this.email?.value);
-    formData.append("password", this.password?.value);
-    formData.append("date_of_birth", formattedDate);
-    formData.append("name", this.name?.value);
-    formData.append("bio", this.bio?.value);
-    formData.append("profile_picture", this.profilePicture as File);
+    formData.append('username', this.username?.value);
+    formData.append('email', this.email?.value);
+    formData.append('password', this.password?.value);
+    formData.append('date_of_birth', formattedDate);
+    formData.append('name', this.name?.value);
+    formData.append('bio', this.bio?.value);
+    formData.append('profile_picture', this.profilePicture as File);
 
-    this.userService.signUp(formData)
-  
+    this.userService.signUp(formData);
+
   }
 
   changePage(page: number) {
-    this.currentPage = page
+    this.currentPage = page;
   }
 
   setDefaultPicture() {
-    this.userPicture = 'https://www.pinkvilla.com/files/styles/contentpreview/public/iron-man-star-robert-downey-jr-best-film.jpg'
+    this.userPicture = 'https://www.pinkvilla.com/files/styles/contentpreview/public/iron-man-star-robert-downey-jr-best-film.jpg';
   }
 
   showPreview(event: any) {
@@ -83,9 +83,9 @@ export class SignUpComponent implements OnInit {
       const reader = new FileReader();
       reader.readAsDataURL(event.target.files[0]);
       reader.onload = (e: any) => this.userPicture = e.target.result;
-      this.profile_picture_selected = event.target.files[0]
+      this.selectedProfilePicture = event.target.files[0];
     } else {
-      this.setDefaultPicture()
+      this.setDefaultPicture();
     }
   }
 

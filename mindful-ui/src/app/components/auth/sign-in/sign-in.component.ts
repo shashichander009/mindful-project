@@ -12,7 +12,7 @@ export class SignInComponent implements OnInit {
   signInForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]],
-  })
+  });
 
   constructor(private formBuilder: FormBuilder, private userService: UserService) { }
 
@@ -20,12 +20,12 @@ export class SignInComponent implements OnInit {
   }
 
 
-  get email() { return this.signInForm.get('email') }
-  get password() { return this.signInForm.get('password') }
+  get email() { return this.signInForm.get('email'); }
+  get password() { return this.signInForm.get('password'); }
 
   onFormSubmit() {
     if (this.signInForm.valid) {
-      this.userService.login(JSON.stringify({ username: this.email?.value, password: this.password?.value }))
+      this.userService.login(JSON.stringify({ username: this.email?.value, password: this.password?.value }));
     }
   }
 
