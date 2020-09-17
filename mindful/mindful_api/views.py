@@ -4,9 +4,11 @@ from django.contrib.auth import (
     logout as django_logout
 )
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+
 from rest_framework import status
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -56,7 +58,19 @@ class LogoutView(APIView):
                             status=status.HTTP_200_OK)
 
 
+class UserViewPermission(BasePermission):
+    """Set permission for UserView"""
+
+    SAFE_METHODS = ['GET', 'POST']
+
+    def has_permission(self, request, view):
+        return request.method in self.SAFE_METHODS
+
+
 class UserView(APIView):
+    """API for create, delete, update and get User"""
+
+    permission_classes = [IsAuthenticated | UserViewPermission]
 
     def get(self, request):
         request_data = request.GET
@@ -80,8 +94,26 @@ class UserView(APIView):
             user_serializer.save()
             return JsonResponse({"detail": "User Created"},
                                 status=status.HTTP_201_CREATED)
+        print(user_serializer.errors)
         return JsonResponse({"detail": "User Not Created"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
+
+    def patch(self, request):
+        user = get_user_from_jwt(self, request)
+        user_serializer = UserSerializer(user, data=request.data, partial=True)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return JsonResponse({"detail": "User Updated"},
+                                status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({"detail": "User Not Updated"},
+                                status=status.HTTP_417_EXPECTATION_FAILED)
+
+    def delete(self, request):
+        user = get_user_from_jwt(self, request)
+        user.delete()
+        return JsonResponse({"detail": "User Deleted"},
+                            status=status.HTTP_200_OK)
 
 
 def get_user_from_jwt(self, request):
@@ -118,6 +150,8 @@ class PostView(APIView):
                             safe=False)
 
     def post(self, request):
+        request.data._mutable = True
+
         user = get_user_from_jwt(self, request)
         request.data['user_id'] = user.user_id
 
@@ -265,3 +299,32 @@ class ReportPostView(APIView):
 
         return JsonResponse({"detail": "You can't report your own post"},
                             status=status.HTTP_401_UNAUTHORIZED)
+
+
+@csrf_exempt
+def update_password(request):
+    email = request.POST['email']
+    dob = request.POST['date_of_birth']
+    que = request.POST['security_que']
+    ans = request.POST['security_ans']
+    new_passwd = request.POST['new_password']
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return JsonResponse({"detail": "User not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    conditions = [
+        str(user.date_of_birth) == dob,
+        user.security_que == que,
+        user.security_ans == ans]
+
+    if all(conditions):
+        user.set_password(new_passwd)
+        user.save()
+        return JsonResponse({"detail": "Password Updated"},
+                            status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({"detail": "Details not matched"},
+                            status=status.HTTP_417_EXPECTATION_FAILED)

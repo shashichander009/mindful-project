@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
 
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 from .models import User, Post, Likes, Bookmarks, ReportPost
 
 
@@ -42,12 +44,16 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validate_data):
+        print(validate_data)
+        print(validate_data.get('security_ans', ''))
         user = UserModel.objects.create(
             email=validate_data.get('email', ''),
             username=validate_data.get('username', ''),
             name=validate_data.get('name', ''),
             date_of_birth=validate_data.get('date_of_birth', ''),
             bio=validate_data.get('bio', ''),
+            security_que=validate_data.get('security_que', ''),
+            security_ans=validate_data.get('security_ans', '')
         )
 
         incoming_img = validate_data.get('profile_picture', '')
@@ -71,20 +77,38 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'profile_picture',
             'last_active',
+            'security_que',
+            'security_ans',
         ]
 
         extra_kwargs = {
-            'password': {'write_only': True}
+            'password': {'write_only': True},
+            'security_ans': {'write_only': True}
         }
 
 
 class PostSerializer(serializers.ModelSerializer):
 
+    def get_tags(self, post):
+        tags = {}
+        tags['hashtag'] = re.findall("[#]\w+", post)
+
+        analyzer = SentimentIntensityAnalyzer()
+        vs = analyzer.polarity_scores(post)
+        if vs.get('compound', 0) >= 0.5:
+            tags['sentiment'] = 'positive'
+        elif vs.get('compound', 0) >= -0.5 and vs.get('compound', 0) <= 0.5:
+            tags['sentiment'] = 'neutral'
+        else:
+            tags['sentiment'] = 'negative'
+
+        return tags
+
     def create(self, validate_data):
         post = Post.objects.create(
             content=validate_data.get('content', ''),
             user_id=validate_data.get('user_id', ''),
-            tags={"sample_tag_key": "sample_value"}
+            tags=tag
         )
 
         if validate_data.get('has_media', False):
@@ -127,6 +151,7 @@ class PostSerializer(serializers.ModelSerializer):
             'has_media',
             'created_at',
             'user_id',
+            'tags'
         ]
 
 

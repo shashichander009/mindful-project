@@ -29,4 +29,7 @@ urlpatterns = [
     path('report/<post_id>/',
          views.ReportPostView.as_view(),
          name='bookmark-post'),
+    path('reset-password/',
+         views.update_password,
+         name='reset-password'),
 ]

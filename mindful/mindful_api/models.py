@@ -56,6 +56,8 @@ class User(AbstractBaseUser):
     last_active = models.DateTimeField(auto_now_add=True)
     is_superuser = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
+    security_que = models.TextField(max_length=256, null=True)
+    security_ans = models.TextField(max_length=256, null=True)
 
     USERNAME_FIELD = 'username'
 
