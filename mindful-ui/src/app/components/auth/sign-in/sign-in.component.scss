@@ -1,5 +1,5 @@
-.sign-in-email {
-    grid-area: sign-in-email;
+.sign-in-userId {
+    grid-area: sign-in-userId;
 }
 
 .sign-in-password {
@@ -8,13 +8,66 @@
 
 .sign-in-btn {
     grid-area: sign-in-btn;
+
+    .forget-btn {
+        margin-left: 20px;
+    }
 }
 
 .sign-in-field-container {
     display: grid;
     grid-template-columns: 1fr;
     grid-template-areas:
-        "sign-in-email"
+        "sign-in-userId"
         "sign-in-password"
         "sign-in-btn";
+}
+
+.forget-password-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+        "emailField dobField"
+        "qtnField answerField"
+        "passwordField cPasswordField"
+        "submitField submitField";
+    gap: 2px 20px;
+
+    .email-field {
+        grid-area: emailField;
+    }
+    .dob-field {
+        grid-area: dobField;
+    }
+    .qtn-field {
+        grid-area: qtnField;
+    }
+    .answer-field {
+        grid-area: answerField;
+    }
+    .password-field {
+        grid-area: passwordField;
+    }
+    .c-password-field {
+        grid-area: cPasswordField;
+    }
+    .submit-btn {
+        grid-area: submitField;
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .forget-password-container {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "emailField"
+            "dobField"
+            "qtnField"
+            "answerField"
+            "passwordField"
+            "cPasswordField"
+            "submitField";
+    }
 }

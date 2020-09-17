@@ -29,13 +29,16 @@ export class UserService {
 
     this.http.post(this.loginURI, data, { observe: 'response', headers }).subscribe((res) => {
       if (res.status === 200) {
-        const responseToken = res.body as Token;
-        this.tokenService.setAccessToken(responseToken.token.access);
-        this.tokenService.setRefreshToken(responseToken.token.refresh);
+        const tokens = res.body as Token;
+        this.tokenService.setAccessToken(tokens.access);
+        this.tokenService.setRefreshToken(tokens.refresh);
         this.router.navigate(['/']);
       } else if (res.status === 401) {
         if (this.tokenService.getAccessToken()) {
+          console.log('This is executing')
           this.router.navigate(['/']);
+        } else {
+          console.log(res.body);
         }
       }
     });
