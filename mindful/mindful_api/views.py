@@ -303,11 +303,11 @@ class ReportPostView(APIView):
 
 @csrf_exempt
 def update_password(request):
-    email = request.POST['email']
-    dob = request.POST['date_of_birth']
-    que = request.POST['security_que']
-    ans = request.POST['security_ans']
-    new_passwd = request.POST['new_password']
+    email = request.POST.get('email', '')
+    dob = request.POST.get('date_of_birth', '')
+    que = request.POST.get('security_que', '')
+    ans = request.POST.get('security_ans', '')
+    new_passwd = request.POST.get('new_password', '')
 
     try:
         user = User.objects.get(email=email)
@@ -315,16 +315,16 @@ def update_password(request):
         return JsonResponse({"detail": "User not found"},
                             status=status.HTTP_404_NOT_FOUND)
 
-    conditions = [
+    conditions_to_reset_password = [
         str(user.date_of_birth) == dob,
         user.security_que == que,
-        user.security_ans == ans]
+        user.security_ans == ans
+    ]
 
-    if all(conditions):
+    if all(conditions_to_reset_password):
         user.set_password(new_passwd)
         user.save()
         return JsonResponse({"detail": "Password Updated"},
                             status=status.HTTP_200_OK)
-    else:
-        return JsonResponse({"detail": "Details not matched"},
+    return JsonResponse({"detail": "Details not matched"},
                             status=status.HTTP_417_EXPECTATION_FAILED)

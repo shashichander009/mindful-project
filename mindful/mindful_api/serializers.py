@@ -1,4 +1,5 @@
 import os
+import re
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
@@ -44,8 +45,6 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validate_data):
-        print(validate_data)
-        print(validate_data.get('security_ans', ''))
         user = UserModel.objects.create(
             email=validate_data.get('email', ''),
             username=validate_data.get('username', ''),
@@ -95,20 +94,25 @@ class PostSerializer(serializers.ModelSerializer):
 
         analyzer = SentimentIntensityAnalyzer()
         vs = analyzer.polarity_scores(post)
-        if vs.get('compound', 0) >= 0.5:
-            tags['sentiment'] = 'positive'
-        elif vs.get('compound', 0) >= -0.5 and vs.get('compound', 0) <= 0.5:
-            tags['sentiment'] = 'neutral'
-        else:
-            tags['sentiment'] = 'negative'
+        compound = vs.get('compound', 0)
 
+        if compound >= 0.5:
+            sentiment = 'positive'
+        elif compound >= -0.5 and compound <= 0.5:
+            sentiment = 'neutral'
+        else:
+            sentiment = 'negative'
+
+        tags['sentiment'] = sentiment
         return tags
 
     def create(self, validate_data):
+        tags = self.get_tags(validate_data.get('content', ''))
+
         post = Post.objects.create(
             content=validate_data.get('content', ''),
             user_id=validate_data.get('user_id', ''),
-            tags=tag
+            tags=tags
         )
 
         if validate_data.get('has_media', False):
