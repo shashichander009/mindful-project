@@ -305,8 +305,8 @@ class ReportPostView(APIView):
 def update_password(request):
     email = request.POST.get('email', '')
     dob = request.POST.get('date_of_birth', '')
-    que = request.POST.get('security_que', '')
-    ans = request.POST.get('security_ans', '')
+    que = request.POST.get('security_que', '').lower()
+    ans = request.POST.get('security_ans', '').lower()
     new_passwd = request.POST.get('new_password', '')
 
     try:

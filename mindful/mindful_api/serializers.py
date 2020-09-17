@@ -51,8 +51,8 @@ class UserSerializer(serializers.ModelSerializer):
             name=validate_data.get('name', ''),
             date_of_birth=validate_data.get('date_of_birth', ''),
             bio=validate_data.get('bio', ''),
-            security_que=validate_data.get('security_que', ''),
-            security_ans=validate_data.get('security_ans', '')
+            security_que=validate_data.get('security_que', '').lower(),
+            security_ans=validate_data.get('security_ans', '').lower()
         )
 
         incoming_img = validate_data.get('profile_picture', '')
