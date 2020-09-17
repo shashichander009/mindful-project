@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
 
-from .models import User, Post
+from .models import User, Post, Likes, Bookmarks, ReportPost
 
 
 UserModel = get_user_model()
@@ -127,4 +127,67 @@ class PostSerializer(serializers.ModelSerializer):
             'has_media',
             'created_at',
             'user_id',
+        ]
+
+
+class LikeSerializer(serializers.ModelSerializer):
+
+    def create(self, validate_data):
+        post_id = validate_data.get('post_id', '')
+        user_id = validate_data.get('user_id', '')
+        like = Likes.objects.create(
+            post_id=post_id,
+            user_id=user_id
+        )
+        return like
+
+    class Meta:
+        model = Likes
+        fields = [
+            'like_id',
+            'post_id',
+            'user_id',
+            'like_time'
+        ]
+
+
+class BookmarkSerializer(serializers.ModelSerializer):
+
+    def create(self, validate_data):
+        post_id = validate_data.get('post_id', '')
+        user_id = validate_data.get('user_id', '')
+        bookmark = Bookmarks.objects.create(
+            post_id=post_id,
+            user_id=user_id
+        )
+        return bookmark
+
+    class Meta:
+        model = Bookmarks
+        fields = [
+            'bookmark_id',
+            'post_id',
+            'user_id',
+            'bookmark_time'
+        ]
+
+
+class ReportSerializer(serializers.ModelSerializer):
+
+    def create(self, validate_data):
+        post_id = validate_data.get('post_id', '')
+        user_id = validate_data.get('user_id', '')
+        report = ReportPost.objects.create(
+            post_id=post_id,
+            user_id=user_id
+        )
+        return report
+
+    class Meta:
+        model = ReportPost
+        fields = [
+            'report_id',
+            'post_id',
+            'user_id',
+            'report_time'
         ]

@@ -29,7 +29,7 @@ class CustomUserManager(BaseUserManager):
             email=email,
             password=password,
             is_admin=True,
-            )
+        )
         return user
 
 

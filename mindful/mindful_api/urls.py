@@ -20,4 +20,13 @@ urlpatterns = [
     path('post/<post_id>/',
          views.SinglePostView.as_view(),
          name='single-post'),
+    path('like/<post_id>/',
+         views.LikePostView.as_view(),
+         name='like-post'),
+    path('bookmark/<post_id>/',
+         views.BookmarkPostView.as_view(),
+         name='bookmark-post'),
+    path('report/<post_id>/',
+         views.ReportPostView.as_view(),
+         name='bookmark-post'),
 ]

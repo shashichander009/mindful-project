@@ -14,13 +14,17 @@ from .serializers import (
     LoginSerializer,
     UserSerializer,
     PostSerializer,
+    LikeSerializer,
+    BookmarkSerializer,
+    ReportSerializer,
 )
 from .models import (
     User,
     Post,
+    Likes,
+    Bookmarks,
+    ReportPost,
 )
-
-# Create your views here.
 
 
 class LoginView(APIView):
@@ -174,3 +178,90 @@ class SinglePostView(APIView):
         post.delete()
         return JsonResponse({"detail": "Post Deleted"},
                             status=status.HTTP_200_OK)
+
+
+class LikePostView(APIView):
+    """API to Like/Unlike a specific post"""
+
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, post_id):
+        request_user = get_user_from_jwt(self, request)
+        request.data['post_id'] = post_id
+        request.data['user_id'] = request_user.user_id
+
+        post = get_object_or_404(Post, post_id=post_id)
+
+        like = Likes.objects.filter(
+            post_id=post_id, user_id=request_user.user_id)
+
+        if not like:
+            like_serializer = LikeSerializer(data=request.data)
+            if like_serializer.is_valid():
+                like_serializer.save()
+                return JsonResponse({"detail": "Like Added"},
+                                    status=status.HTTP_200_OK)
+        like.delete()
+        return JsonResponse({"detail": "Like removed"},
+                            status=status.HTTP_200_OK)
+
+
+class BookmarkPostView(APIView):
+    """API to Bookmark/Remove bookmark a specific post"""
+
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, post_id):
+        request_user = get_user_from_jwt(self, request)
+        request.data['post_id'] = post_id
+        request.data['user_id'] = request_user.user_id
+
+        post = get_object_or_404(Post, post_id=post_id)
+
+        bookmark = Bookmarks.objects.filter(
+            post_id=post_id, user_id=request_user.user_id)
+
+        if not bookmark:
+            bookmark_serializer = BookmarkSerializer(data=request.data)
+            if bookmark_serializer.is_valid():
+                bookmark_serializer.save()
+                return JsonResponse({"detail": "Bookmark Added"},
+                                    status=status.HTTP_200_OK)
+        bookmark.delete()
+        return JsonResponse({"detail": "BookMark removed"},
+                            status=status.HTTP_200_OK)
+
+
+class ReportPostView(APIView):
+    """API to Report/Remove report a specific post"""
+
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, post_id):
+
+        post = get_object_or_404(Post, post_id=post_id)
+
+        request_user = get_user_from_jwt(self, request)
+        request.data['post_id'] = post_id
+        request.data['user_id'] = request_user.user_id
+
+        post_user_id = post.user_id.user_id
+        request_user_id = request_user.user_id
+
+        if not post_user_id is request_user_id:
+
+            report = ReportPost.objects.filter(
+                post_id=post_id, user_id=request_user_id)
+
+            if not report:
+                report_serializer = ReportSerializer(data=request.data)
+                if report_serializer.is_valid():
+                    report_serializer.save()
+                    return JsonResponse({"detail": "Report Added"},
+                                        status=status.HTTP_200_OK)
+            report.delete()
+            return JsonResponse({"detail": "Report removed"},
+                                status=status.HTTP_200_OK)
+
+        return JsonResponse({"detail": "You can't report your own post"},
+                            status=status.HTTP_401_UNAUTHORIZED)
