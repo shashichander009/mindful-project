@@ -8,23 +8,35 @@ from rest_framework import exceptions
 from .models import User, Post
 
 
+UserModel = get_user_model()
+
+
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    username = serializers.CharField(required=False)
+    email = serializers.CharField(required=False)
     password = serializers.CharField()
 
     def validate(self, data):
+
         username = data.get('username', '')
+        email = data.get('email', '')
         password = data.get('password', '')
 
-        if username and password:
+        if email:
+            try:
+                requested_user = UserModel.objects.get(email=email)
+            except UserModel.DoesNotExist:
+                raise exceptions.ValidationError()
+            else:
+                user = authenticate(username=requested_user.username,
+                                    password=password)
+
+        if username:
             user = authenticate(username=username, password=password)
-            if user:
-                return {"user": user}
 
+        if user:
+            return {"user": user}
         raise exceptions.ValidationError()
-
-
-UserModel = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
