@@ -15,6 +15,8 @@ UserModel = get_user_model()
 
 # comment added to test git workflow
 # comment
+# comment second to test
+
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=False)
     email = serializers.CharField(required=False)
