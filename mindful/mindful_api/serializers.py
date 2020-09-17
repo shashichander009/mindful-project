@@ -14,7 +14,7 @@ from .models import User, Post, Likes, Bookmarks, ReportPost
 UserModel = get_user_model()
 
 # comment added to test git workflow
-
+# comment
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=False)
     email = serializers.CharField(required=False)
