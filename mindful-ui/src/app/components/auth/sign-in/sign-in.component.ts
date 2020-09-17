@@ -55,15 +55,27 @@ export class SignInComponent implements OnInit {
       const userId = this.userId?.value;
       const password = this.password?.value;
       if (this.utils.isValidEmail(userId)) {
-        this.userService.login(JSON.stringify({ email: userId, password: password }));
+        this.userService.login({ email: userId, password });
       } else {
-        this.userService.login(JSON.stringify({ username: userId, password: password }));
+        this.userService.login({ username: userId, password });
       }
     }
   }
 
 
-  onForgetPasswordSubmit() { return; }
+  onForgetPasswordSubmit() {
+    if (this.forgetPasswordForm.valid) {
+      const resetPasswordPayload = {
+        email: this.email?.value,
+        date_of_birth: this.dateOfBirth?.value,
+        security_que: this.question?.value,
+        security_ans: this.answer?.value,
+        new_password: this.fPassword?.value
+      };
+
+      this.userService.resetPassword(resetPasswordPayload);
+    }
+  }
 
   changePage(page: number) {
     this.currentPage = page;

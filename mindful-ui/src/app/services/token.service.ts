@@ -46,6 +46,9 @@ export class TokenService {
       });
 
       return true;
+    } else {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
     }
     return false;
   }
