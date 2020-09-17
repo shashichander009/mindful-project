@@ -4,10 +4,10 @@ from django.contrib.auth import (
     logout as django_logout
 )
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -301,30 +301,28 @@ class ReportPostView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-@csrf_exempt
+@api_view(['POST'])
 def update_password(request):
-    email = request.POST.get('email', '')
-    dob = request.POST.get('date_of_birth', '')
-    que = request.POST.get('security_que', '').lower()
-    ans = request.POST.get('security_ans', '').lower()
-    new_passwd = request.POST.get('new_password', '')
 
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return JsonResponse({"detail": "User not found"},
-                            status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'POST':
+        email = request.data.get('email', '')
+        dob = request.data.get('date_of_birth', '')
+        que = request.data.get('security_que', '').lower()
+        ans = request.data.get('security_ans', '').lower()
+        new_passwd = request.data.get('new_password', '')
 
-    conditions_to_reset_password = [
-        str(user.date_of_birth) == dob,
-        user.security_que == que,
-        user.security_ans == ans
-    ]
+        user = get_object_or_404(User, email=email)
 
-    if all(conditions_to_reset_password):
-        user.set_password(new_passwd)
-        user.save()
-        return JsonResponse({"detail": "Password Updated"},
-                            status=status.HTTP_200_OK)
-    return JsonResponse({"detail": "Details not matched"},
+        conditions_to_reset_password = [
+            str(user.date_of_birth) == dob,
+            user.security_que == que,
+            user.security_ans == ans
+        ]
+
+        if all(conditions_to_reset_password):
+            user.set_password(new_passwd)
+            user.save()
+            return JsonResponse({"detail": "Password Updated"},
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Details not matched"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
