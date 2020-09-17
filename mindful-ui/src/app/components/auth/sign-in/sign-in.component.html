@@ -1,23 +1,92 @@
-<form [formGroup]="signInForm" (ngSubmit)="onFormSubmit()">
-    <div class="sign-in-field-container">
-        <mat-form-field class="sign-in-email" appearance="outline">
-            <mat-label>Email</mat-label>
-            <input matInput formControlName="email">
-            <mat-icon matSuffix>email</mat-icon>
-            <mat-error *ngIf="email?.invalid">You must enter a valid email</mat-error>
-        </mat-form-field>
+<div [ngSwitch]="currentPage">
+    <div *ngSwitchCase="1">
+        <form [formGroup]="signInForm" (ngSubmit)="onLoginFormSubmit()">
+            <div class="sign-in-field-container">
+                <mat-form-field class="sign-in-userId" appearance="outline">
+                    <mat-label>Username/Email</mat-label>
+                    <input matInput formControlName="userId">
+                    <mat-error *ngIf="userId?.errors?.required">username/email is required</mat-error>
+                </mat-form-field>
 
-        <mat-form-field class="sign-in-password" appearance="outline">
-            <mat-label>Password</mat-label>
-            <input type="password" matInput formControlName="password">
-            <mat-icon matSuffix>lock</mat-icon>
-            <mat-error *ngIf="password?.errors?.required">Password is required</mat-error>
-        </mat-form-field>
+                <mat-form-field class="sign-in-password" appearance="outline">
+                    <mat-label>Password</mat-label>
+                    <input type="password" matInput formControlName="password">
+                    <mat-icon matSuffix>lock</mat-icon>
+                    <mat-error *ngIf="password?.errors?.required">Password is required</mat-error>
+                </mat-form-field>
 
-        <div class="sign-in-btn">
-            <button type="submit" mat-raised-button color="primary">Login</button>
-        </div>
+                <div class="sign-in-btn">
+                    <button type="submit" mat-raised-button color="primary">Login</button>
+                    <button class="forget-btn" type="button" mat-button (click)="changePage(2)">Forgot
+                        Password?</button>
+                </div>
+            </div>
+
+        </form>
     </div>
 
+    <div *ngSwitchCase="2">
+        <h2>Forgot Password</h2>
+        <form [formGroup]="forgetPasswordForm" (ngSubmit)="onForgetPasswordSubmit()">
 
-</form>
+            <div class="forget-password-container">
+                <mat-form-field class="email-field" appearance="outline">
+                    <mat-label>Email</mat-label>
+                    <input matInput formControlName="email">
+                    <mat-icon matSuffix>email</mat-icon>
+                    <mat-error *ngIf="email?.errors?.email">You must enter a valid email</mat-error>
+                    <mat-error *ngIf="email?.errors?.required">This field is required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="dob-field" appearance="outline">
+                    <mat-label>Date of Birth</mat-label>
+                    <input matInput [matDatepicker]="picker" formControlName="dateOfBirth" placeholder="8/31/2000"
+                        readonly>
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                    <mat-error *ngIf="dateOfBirth?.errors?.required">This field is required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="qtn-field" appearance="outline">
+                    <mat-label>Select Question</mat-label>
+                    <mat-select formControlName="question">
+                        <mat-option *ngFor="let qtn of securityQuestions" [value]="qtn"> {{qtn}} </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="question?.errors?.required">This field is required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field class="answer-field" appearance="outline">
+                    <mat-label>Answer</mat-label>
+                    <input matInput formControlName="answer">
+                    <mat-error *ngIf="answer?.errors?.required">This field is required</mat-error>
+                </mat-form-field>
+
+                <ng-container formGroupName="passwords">
+                    <mat-form-field class="password-field" appearance="outline">
+                        <mat-label>Password</mat-label>
+                        <input type="password" matInput formControlName="password">
+                        <mat-icon matSuffix>lock</mat-icon>
+                        <mat-error *ngIf="password?.errors?.minlength">Minimum length must be greater than or equal to 4
+                        </mat-error>
+                        <mat-error *ngIf="password?.errors?.required">This field is required</mat-error>
+                    </mat-form-field>
+
+                    <mat-form-field class="c-password-field" appearance="outline">
+                        <mat-label>Confirm Password</mat-label>
+                        <input type="password" matInput formControlName="confirmPassword">
+                        <mat-icon matSuffix>lock</mat-icon>
+                    </mat-form-field>
+                </ng-container>
+
+                <div class="submit-btn">
+                    <button type="button" mat-raised-button (click)="changePage(1)">Back</button>
+                    <button type="submit" [disabled]="forgetPasswordForm.invalid" mat-raised-button
+                        color="primary">Change Password</button>
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+</div>

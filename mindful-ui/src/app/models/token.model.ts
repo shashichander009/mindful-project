@@ -1,7 +1,4 @@
-interface Tokens {
+export interface Token {
     access: string;
     refresh: string;
-}
-export interface Token {
-    token: Tokens;
 }

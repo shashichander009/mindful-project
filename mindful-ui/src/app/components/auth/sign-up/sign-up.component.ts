@@ -50,9 +50,6 @@ export class SignUpComponent implements OnInit {
   }
 
   onFormSubmit() {
-    if (this.signUpForm.invalid) {
-      this.changePage(1);
-    }
 
     const formattedDate = formatDate(this.dateOfBirth?.value, 'yyyy-MM-dd', 'en-IN');
 
