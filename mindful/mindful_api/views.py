@@ -226,8 +226,8 @@ class LikePostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        like = Likes.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        like = Likes.objects.filter(post_id=post_id,
+                                    user_id=request_user.user_id)
 
         if not like:
             like_serializer = LikeSerializer(data=request.data)
@@ -236,7 +236,7 @@ class LikePostView(APIView):
                 return JsonResponse({"detail": "Like Added"},
                                     status=status.HTTP_200_OK)
         like.delete()
-        return JsonResponse({"detail": "Like removed"},
+        return JsonResponse({"detail": "Like Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -252,8 +252,8 @@ class BookmarkPostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        bookmark = Bookmarks.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        bookmark = Bookmarks.objects.filter(post_id=post_id,
+                                            user_id=request_user.user_id)
 
         if not bookmark:
             bookmark_serializer = BookmarkSerializer(data=request.data)
@@ -262,7 +262,7 @@ class BookmarkPostView(APIView):
                 return JsonResponse({"detail": "Bookmark Added"},
                                     status=status.HTTP_200_OK)
         bookmark.delete()
-        return JsonResponse({"detail": "BookMark removed"},
+        return JsonResponse({"detail": "Bookmark Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -284,8 +284,8 @@ class ReportPostView(APIView):
 
         if not post_user_id is request_user_id:
 
-            report = ReportPost.objects.filter(
-                post_id=post_id, user_id=request_user_id)
+            report = ReportPost.objects.filter(post_id=post_id,
+                                               user_id=request_user_id)
 
             if not report:
                 report_serializer = ReportSerializer(data=request.data)
@@ -294,7 +294,7 @@ class ReportPostView(APIView):
                     return JsonResponse({"detail": "Report Added"},
                                         status=status.HTTP_200_OK)
             report.delete()
-            return JsonResponse({"detail": "Report removed"},
+            return JsonResponse({"detail": "Report Removed"},
                                 status=status.HTTP_200_OK)
 
         return JsonResponse({"detail": "You can't report your own post"},

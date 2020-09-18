@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
-
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from .models import User, Post, Likes, Bookmarks, ReportPost
@@ -128,7 +127,10 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
+        tags = self.get_tags(validated_data.get('content', ''))
+        
         instance.content = validated_data.get("content", instance.content)
+        instance.tags = tags
 
         if instance.has_media:
             instance.image.delete()
