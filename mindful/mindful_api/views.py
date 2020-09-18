@@ -94,38 +94,24 @@ class UserView(APIView):
             user_serializer.save()
             return JsonResponse({"detail": "User Created"},
                                 status=status.HTTP_201_CREATED)
-        print(user_serializer.errors)
         return JsonResponse({"detail": "User Not Created"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
     def patch(self, request):
-        user = get_user_from_jwt(self, request)
+        user = request.user
         user_serializer = UserSerializer(user, data=request.data, partial=True)
         if user_serializer.is_valid():
             user_serializer.save()
             return JsonResponse({"detail": "User Updated"},
                                 status=status.HTTP_200_OK)
-        else:
-            return JsonResponse({"detail": "User Not Updated"},
+        return JsonResponse({"detail": "User Not Updated"},
                                 status=status.HTTP_417_EXPECTATION_FAILED)
 
     def delete(self, request):
-        user = get_user_from_jwt(self, request)
+        user = request.user
         user.delete()
         return JsonResponse({"detail": "User Deleted"},
                             status=status.HTTP_200_OK)
-
-
-def get_user_from_jwt(self, request):
-    """Retrieve user object from incoming JWT"""
-
-    header = JWTAuthentication.get_header(self, request=request)
-    raw_token = JWTAuthentication.get_raw_token(self, header=header)
-    val_token = JWTAuthentication.get_validated_token(self,
-                                                      raw_token=raw_token)
-    user = JWTAuthentication.get_user(self, validated_token=val_token)
-
-    return user
 
 
 def convert_has_media_to_boolean(has_media):
@@ -152,8 +138,7 @@ class PostView(APIView):
     def post(self, request):
         request.data._mutable = True
 
-        user = get_user_from_jwt(self, request)
-        request.data['user_id'] = user.user_id
+        request.data['user_id'] = request.user.user_id
 
         has_media = request.data.get('has_media', '')
         request.data['has_media'] = convert_has_media_to_boolean(has_media)
@@ -181,7 +166,7 @@ class SinglePostView(APIView):
     def patch(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         if not post.user_id == request_user:
             return JsonResponse({"detail": "Unauthorized"},
                                 status=status.HTTP_401_UNAUTHORIZED)
@@ -205,7 +190,7 @@ class SinglePostView(APIView):
     def delete(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         if not post.user_id == request_user:
             return JsonResponse({"detail": "Unauthorized"},
                                 status=status.HTTP_401_UNAUTHORIZED)
@@ -221,7 +206,7 @@ class LikePostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, post_id):
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
@@ -247,7 +232,7 @@ class BookmarkPostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, post_id):
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
@@ -276,7 +261,7 @@ class ReportPostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
