@@ -32,4 +32,7 @@ urlpatterns = [
     path('reset-password/',
          views.update_password,
          name='reset-password'),
+    path('profile/',
+         views.get_profile,
+         name='get-profile'),
 ]

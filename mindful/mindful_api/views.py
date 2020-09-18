@@ -4,10 +4,10 @@ from django.contrib.auth import (
     logout as django_logout
 )
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -226,8 +226,8 @@ class LikePostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        like = Likes.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        like = Likes.objects.filter(post_id=post_id,
+                                    user_id=request_user.user_id)
 
         if not like:
             like_serializer = LikeSerializer(data=request.data)
@@ -236,7 +236,7 @@ class LikePostView(APIView):
                 return JsonResponse({"detail": "Like Added"},
                                     status=status.HTTP_200_OK)
         like.delete()
-        return JsonResponse({"detail": "Like removed"},
+        return JsonResponse({"detail": "Like Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -252,8 +252,8 @@ class BookmarkPostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        bookmark = Bookmarks.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        bookmark = Bookmarks.objects.filter(post_id=post_id,
+                                            user_id=request_user.user_id)
 
         if not bookmark:
             bookmark_serializer = BookmarkSerializer(data=request.data)
@@ -262,7 +262,7 @@ class BookmarkPostView(APIView):
                 return JsonResponse({"detail": "Bookmark Added"},
                                     status=status.HTTP_200_OK)
         bookmark.delete()
-        return JsonResponse({"detail": "BookMark removed"},
+        return JsonResponse({"detail": "Bookmark Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -284,8 +284,8 @@ class ReportPostView(APIView):
 
         if not post_user_id is request_user_id:
 
-            report = ReportPost.objects.filter(
-                post_id=post_id, user_id=request_user_id)
+            report = ReportPost.objects.filter(post_id=post_id,
+                                               user_id=request_user_id)
 
             if not report:
                 report_serializer = ReportSerializer(data=request.data)
@@ -294,37 +294,50 @@ class ReportPostView(APIView):
                     return JsonResponse({"detail": "Report Added"},
                                         status=status.HTTP_200_OK)
             report.delete()
-            return JsonResponse({"detail": "Report removed"},
+            return JsonResponse({"detail": "Report Removed"},
                                 status=status.HTTP_200_OK)
 
         return JsonResponse({"detail": "You can't report your own post"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-@csrf_exempt
+@api_view(['POST'])
 def update_password(request):
-    email = request.POST.get('email', '')
-    dob = request.POST.get('date_of_birth', '')
-    que = request.POST.get('security_que', '').lower()
-    ans = request.POST.get('security_ans', '').lower()
-    new_passwd = request.POST.get('new_password', '')
 
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return JsonResponse({"detail": "User not found"},
-                            status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'POST':
+        email = request.data.get('email', '')
+        dob = request.data.get('date_of_birth', '')
+        que = request.data.get('security_que', '').lower()
+        ans = request.data.get('security_ans', '').lower()
+        new_passwd = request.data.get('new_password', '')
 
-    conditions_to_reset_password = [
-        str(user.date_of_birth) == dob,
-        user.security_que == que,
-        user.security_ans == ans
-    ]
+        user = get_object_or_404(User, email=email)
 
-    if all(conditions_to_reset_password):
-        user.set_password(new_passwd)
-        user.save()
-        return JsonResponse({"detail": "Password Updated"},
-                            status=status.HTTP_200_OK)
-    return JsonResponse({"detail": "Details not matched"},
+        conditions_to_reset_password = [
+            str(user.date_of_birth) == dob,
+            user.security_que == que,
+            user.security_ans == ans
+        ]
+
+        if all(conditions_to_reset_password):
+            user.set_password(new_passwd)
+            user.save()
+            return JsonResponse({"detail": "Password Updated"},
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Details not matched"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
+
+
+@api_view(['GET'])
+def get_profile(request):
+    request_data = request.GET
+    if 'username' in request_data:
+        user = get_object_or_404(User,
+                                 username=request_data.get('username', ''))
+    else:
+        user = request.user
+
+    user_serializer = UserSerializer(user)
+
+    return JsonResponse(user_serializer.data,
+                        status=status.HTTP_200_OK)

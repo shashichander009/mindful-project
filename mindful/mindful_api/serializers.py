@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
-
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from .models import User, Post, Likes, Bookmarks, ReportPost
@@ -13,9 +12,6 @@ from .models import User, Post, Likes, Bookmarks, ReportPost
 
 UserModel = get_user_model()
 
-# comment added to test git workflow
-# comment
-# comment second to test
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=False)
@@ -85,6 +81,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         extra_kwargs = {
             'password': {'write_only': True},
+            'security_que': {'write_only': True},
             'security_ans': {'write_only': True}
         }
 
@@ -131,7 +128,10 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
+        tags = self.get_tags(validated_data.get('content', ''))
+
         instance.content = validated_data.get("content", instance.content)
+        instance.tags = tags
 
         if instance.has_media:
             instance.image.delete()
