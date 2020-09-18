@@ -331,9 +331,9 @@ def update_password(request):
 @api_view(['GET'])
 def get_profile(request):
     request_data = request.GET
-    if 'username' in request_data:
+    if 'userid' in request_data:
         user = get_object_or_404(User,
-                                 username=request_data.get('username', ''))
+                                 user_id=request_data.get('userid', ''))
     else:
         user = request.user
 
