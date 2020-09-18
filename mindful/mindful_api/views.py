@@ -157,6 +157,7 @@ class PostView(APIView):
 
         has_media = request.data.get('has_media', '')
         request.data['has_media'] = convert_has_media_to_boolean(has_media)
+        request.data['tags'] = {}
 
         post_serializer = PostSerializer(data=request.data)
         if post_serializer.is_valid():
@@ -331,13 +332,23 @@ def update_password(request):
 @api_view(['GET'])
 def get_profile(request):
     request_data = request.GET
+
     if 'userid' in request_data:
+        try:
+            user_id = int(request_data.get('userid', ''))
+        except ValueError:
+            return JsonResponse({"detail": "Invalid User ID"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
         user = get_object_or_404(User,
-                                 user_id=request_data.get('userid', ''))
+                                 user_id=user_id)
     else:
-        user = request.user
+        if request.auth:
+            user = request.user
+        else:
+            return JsonResponse({"detail": "No User ID Given"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
     user_serializer = UserSerializer(user)
-
     return JsonResponse(user_serializer.data,
                         status=status.HTTP_200_OK)
