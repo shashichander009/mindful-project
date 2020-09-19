@@ -1,10 +1,10 @@
 import os
+import re
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
-
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from .models import User, Post, Likes, Bookmarks, ReportPost, Followings
@@ -44,16 +44,14 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validate_data):
-        print(validate_data)
-        print(validate_data.get('security_ans', ''))
         user = UserModel.objects.create(
             email=validate_data.get('email', ''),
             username=validate_data.get('username', ''),
             name=validate_data.get('name', ''),
             date_of_birth=validate_data.get('date_of_birth', ''),
             bio=validate_data.get('bio', ''),
-            security_que=validate_data.get('security_que', ''),
-            security_ans=validate_data.get('security_ans', '')
+            security_que=validate_data.get('security_que', '').lower(),
+            security_ans=validate_data.get('security_ans', '').lower()
         )
 
         incoming_img = validate_data.get('profile_picture', '')
@@ -69,6 +67,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'user_id',
             'username',
             'password',
             'email',
@@ -83,6 +82,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         extra_kwargs = {
             'password': {'write_only': True},
+            'security_que': {'write_only': True},
             'security_ans': {'write_only': True}
         }
 
@@ -95,20 +95,25 @@ class PostSerializer(serializers.ModelSerializer):
 
         analyzer = SentimentIntensityAnalyzer()
         vs = analyzer.polarity_scores(post)
-        if vs.get('compound', 0) >= 0.5:
-            tags['sentiment'] = 'positive'
-        elif vs.get('compound', 0) >= -0.5 and vs.get('compound', 0) <= 0.5:
-            tags['sentiment'] = 'neutral'
-        else:
-            tags['sentiment'] = 'negative'
+        compound = vs.get('compound', 0)
 
+        if compound >= 0.5:
+            sentiment = 'positive'
+        elif compound >= -0.5 and compound <= 0.5:
+            sentiment = 'neutral'
+        else:
+            sentiment = 'negative'
+
+        tags['sentiment'] = sentiment
         return tags
 
     def create(self, validate_data):
+        tags = self.get_tags(validate_data.get('content', ''))
+
         post = Post.objects.create(
             content=validate_data.get('content', ''),
             user_id=validate_data.get('user_id', ''),
-            tags=tag
+            tags=tags
         )
 
         if validate_data.get('has_media', False):
@@ -124,7 +129,10 @@ class PostSerializer(serializers.ModelSerializer):
         return post
 
     def update(self, instance, validated_data):
+        tags = self.get_tags(validated_data.get('content', ''))
+
         instance.content = validated_data.get("content", instance.content)
+        instance.tags = tags
 
         if instance.has_media:
             instance.image.delete()

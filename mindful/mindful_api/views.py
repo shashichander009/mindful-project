@@ -4,10 +4,10 @@ from django.contrib.auth import (
     logout as django_logout
 )
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -97,38 +97,24 @@ class UserView(APIView):
             user_serializer.save()
             return JsonResponse({"detail": "User Created"},
                                 status=status.HTTP_201_CREATED)
-        print(user_serializer.errors)
         return JsonResponse({"detail": "User Not Created"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
     def patch(self, request):
-        user = get_user_from_jwt(self, request)
+        user = request.user
         user_serializer = UserSerializer(user, data=request.data, partial=True)
         if user_serializer.is_valid():
             user_serializer.save()
             return JsonResponse({"detail": "User Updated"},
                                 status=status.HTTP_200_OK)
-        else:
-            return JsonResponse({"detail": "User Not Updated"},
+        return JsonResponse({"detail": "User Not Updated"},
                                 status=status.HTTP_417_EXPECTATION_FAILED)
 
     def delete(self, request):
-        user = get_user_from_jwt(self, request)
+        user = request.user
         user.delete()
         return JsonResponse({"detail": "User Deleted"},
                             status=status.HTTP_200_OK)
-
-
-def get_user_from_jwt(self, request):
-    """Retrieve user object from incoming JWT"""
-
-    header = JWTAuthentication.get_header(self, request=request)
-    raw_token = JWTAuthentication.get_raw_token(self, header=header)
-    val_token = JWTAuthentication.get_validated_token(self,
-                                                      raw_token=raw_token)
-    user = JWTAuthentication.get_user(self, validated_token=val_token)
-
-    return user
 
 
 def convert_has_media_to_boolean(has_media):
@@ -155,11 +141,11 @@ class PostView(APIView):
     def post(self, request):
         request.data._mutable = True
 
-        user = get_user_from_jwt(self, request)
-        request.data['user_id'] = user.user_id
+        request.data['user_id'] = request.user.user_id
 
         has_media = request.data.get('has_media', '')
         request.data['has_media'] = convert_has_media_to_boolean(has_media)
+        request.data['tags'] = {}
 
         post_serializer = PostSerializer(data=request.data)
         if post_serializer.is_valid():
@@ -183,7 +169,7 @@ class SinglePostView(APIView):
     def patch(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         if not post.user_id == request_user:
             return JsonResponse({"detail": "Unauthorized"},
                                 status=status.HTTP_401_UNAUTHORIZED)
@@ -207,7 +193,7 @@ class SinglePostView(APIView):
     def delete(self, request, post_id):
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         if not post.user_id == request_user:
             return JsonResponse({"detail": "Unauthorized"},
                                 status=status.HTTP_401_UNAUTHORIZED)
@@ -223,14 +209,14 @@ class LikePostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, post_id):
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        like = Likes.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        like = Likes.objects.filter(post_id=post_id,
+                                    user_id=request_user.user_id)
 
         if not like:
             like_serializer = LikeSerializer(data=request.data)
@@ -241,7 +227,7 @@ class LikePostView(APIView):
             return JsonResponse({"detail": "Invalid Data"},
                                 status=status.HTTP_400_BAD_REQUEST)
         like.delete()
-        return JsonResponse({"detail": "Like removed"},
+        return JsonResponse({"detail": "Like Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -251,14 +237,14 @@ class BookmarkPostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def post(self, request, post_id):
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        bookmark = Bookmarks.objects.filter(
-            post_id=post_id, user_id=request_user.user_id)
+        bookmark = Bookmarks.objects.filter(post_id=post_id,
+                                            user_id=request_user.user_id)
 
         if not bookmark:
             bookmark_serializer = BookmarkSerializer(data=request.data)
@@ -269,7 +255,7 @@ class BookmarkPostView(APIView):
             return JsonResponse({"detail": "Invalid Data"},
                                 status=status.HTTP_400_BAD_REQUEST)
         bookmark.delete()
-        return JsonResponse({"detail": "BookMark removed"},
+        return JsonResponse({"detail": "Bookmark Removed"},
                             status=status.HTTP_200_OK)
 
 
@@ -282,7 +268,7 @@ class ReportPostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
-        request_user = get_user_from_jwt(self, request)
+        request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
@@ -291,8 +277,8 @@ class ReportPostView(APIView):
 
         if not post_user_id is request_user_id:
 
-            report = ReportPost.objects.filter(
-                post_id=post_id, user_id=request_user_id)
+            report = ReportPost.objects.filter(post_id=post_id,
+                                               user_id=request_user_id)
 
             if not report:
                 report_serializer = ReportSerializer(data=request.data)
@@ -303,38 +289,36 @@ class ReportPostView(APIView):
                 return JsonResponse({"detail": "Invalid Data"},
                                     status=status.HTTP_400_BAD_REQUEST)
             report.delete()
-            return JsonResponse({"detail": "Report removed"},
+            return JsonResponse({"detail": "Report Removed"},
                                 status=status.HTTP_200_OK)
 
         return JsonResponse({"detail": "You can't report your own post"},
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-@csrf_exempt
+@api_view(['POST'])
 def update_password(request):
-    email = request.POST['email']
-    dob = request.POST['date_of_birth']
-    que = request.POST['security_que']
-    ans = request.POST['security_ans']
-    new_passwd = request.POST['new_password']
 
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return JsonResponse({"detail": "User not found"},
-                            status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'POST':
+        email = request.data.get('email', '')
+        dob = request.data.get('date_of_birth', '')
+        que = request.data.get('security_que', '').lower()
+        ans = request.data.get('security_ans', '').lower()
+        new_passwd = request.data.get('new_password', '')
 
-    conditions = [
-        str(user.date_of_birth) == dob,
-        user.security_que == que,
-        user.security_ans == ans]
+        user = get_object_or_404(User, email=email)
 
-    if all(conditions):
-        user.set_password(new_passwd)
-        user.save()
-        return JsonResponse({"detail": "Password Updated"},
-                            status=status.HTTP_200_OK)
-    else:
+        conditions_to_reset_password = [
+            str(user.date_of_birth) == dob,
+            user.security_que == que,
+            user.security_ans == ans
+        ]
+
+        if all(conditions_to_reset_password):
+            user.set_password(new_passwd)
+            user.save()
+            return JsonResponse({"detail": "Password Updated"},
+                                status=status.HTTP_200_OK)
         return JsonResponse({"detail": "Details not matched"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
@@ -439,3 +423,28 @@ class FollowingsView(APIView):
                                 status=status.HTTP_200_OK)
         return JsonResponse({"detail": "no followings"},
                             status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_profile(request):
+    request_data = request.GET
+
+    if 'userid' in request_data:
+        try:
+            user_id = int(request_data.get('userid', ''))
+        except ValueError:
+            return JsonResponse({"detail": "Invalid User ID"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+        user = get_object_or_404(User,
+                                 user_id=user_id)
+    else:
+        if request.auth:
+            user = request.user
+        else:
+            return JsonResponse({"detail": "No User ID Given"},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    user_serializer = UserSerializer(user)
+    return JsonResponse(user_serializer.data,
+                        status=status.HTTP_200_OK)

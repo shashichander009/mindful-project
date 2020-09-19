@@ -41,4 +41,7 @@ urlpatterns = [
     path('followings/<user_id>/',
          views.FollowingsView.as_view(),
          name='followings'),
+    path('profile/',
+         views.get_profile,
+         name='get-profile'),
 ]
