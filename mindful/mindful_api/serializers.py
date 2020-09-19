@@ -7,7 +7,7 @@ from rest_framework import exceptions
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from .models import User, Post, Likes, Bookmarks, ReportPost
+from .models import User, Post, Likes, Bookmarks, ReportPost, Followings
 
 
 UserModel = get_user_model()
@@ -215,4 +215,25 @@ class ReportSerializer(serializers.ModelSerializer):
             'post_id',
             'user_id',
             'report_time'
+        ]
+
+
+class FollowingsSerializer(serializers.ModelSerializer):
+
+    def create(self, validate_data):
+
+        follow = Followings.objects.create(
+            followed_by_id=validate_data.get(
+                'followed_by_id', ''),
+            follower_id=validate_data.get('follower_id', '')
+        )
+        return follow
+
+    class Meta:
+        model = Followings
+        fields = [
+            'following_id',
+            'follower_id',
+            'followed_by_id',
+            'follow_time',
         ]

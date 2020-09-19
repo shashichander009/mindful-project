@@ -110,7 +110,7 @@ class Followings(models.Model):
     follow_time = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.followed_by_id} is following {self.followed_id}'
+        return f'{self.followed_by_id} is following {self.follower_id}'
 
 
 class Likes(models.Model):

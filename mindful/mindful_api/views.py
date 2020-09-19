@@ -19,6 +19,7 @@ from .serializers import (
     LikeSerializer,
     BookmarkSerializer,
     ReportSerializer,
+    FollowingsSerializer,
 )
 from .models import (
     User,
@@ -26,6 +27,7 @@ from .models import (
     Likes,
     Bookmarks,
     ReportPost,
+    Followings,
 )
 
 
@@ -43,6 +45,7 @@ class LoginView(APIView):
                 'refresh': str(jwt),
                 'access': str(jwt.access_token)
             }
+
             return JsonResponse(token, status=status.HTTP_200_OK)
         return JsonResponse({"detail": "Login Failed"},
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -235,6 +238,8 @@ class LikePostView(APIView):
                 like_serializer.save()
                 return JsonResponse({"detail": "Like Added"},
                                     status=status.HTTP_200_OK)
+            return JsonResponse({"detail": "Invalid Data"},
+                                status=status.HTTP_400_BAD_REQUEST)
         like.delete()
         return JsonResponse({"detail": "Like removed"},
                             status=status.HTTP_200_OK)
@@ -261,6 +266,8 @@ class BookmarkPostView(APIView):
                 bookmark_serializer.save()
                 return JsonResponse({"detail": "Bookmark Added"},
                                     status=status.HTTP_200_OK)
+            return JsonResponse({"detail": "Invalid Data"},
+                                status=status.HTTP_400_BAD_REQUEST)
         bookmark.delete()
         return JsonResponse({"detail": "BookMark removed"},
                             status=status.HTTP_200_OK)
@@ -293,6 +300,8 @@ class ReportPostView(APIView):
                     report_serializer.save()
                     return JsonResponse({"detail": "Report Added"},
                                         status=status.HTTP_200_OK)
+                return JsonResponse({"detail": "Invalid Data"},
+                                    status=status.HTTP_400_BAD_REQUEST)
             report.delete()
             return JsonResponse({"detail": "Report removed"},
                                 status=status.HTTP_200_OK)
@@ -328,3 +337,105 @@ def update_password(request):
     else:
         return JsonResponse({"detail": "Details not matched"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
+
+
+class FollowView(APIView):
+    """API to follow/unfollow users"""
+
+    permission_classes = (IsAuthenticated, )
+
+    def post(self, request, user_id):
+
+        user_to_be_followed = get_object_or_404(User, user_id=user_id)
+
+        user_to_be_followed_user_id = user_to_be_followed.user_id
+        request_user_id = request.user.user_id
+
+        request.data['follower_id'] = user_id
+        request.data['followed_by_id'] = request_user_id
+
+        if not user_to_be_followed_user_id is request_user_id:
+
+            print(user_to_be_followed_user_id)
+            print(request_user_id)
+            following = Followings.objects.filter(
+                follower_id=user_to_be_followed_user_id, followed_by_id=request_user_id)
+
+            if not following:
+                follow_serializer = FollowingsSerializer(data=request.data)
+                if follow_serializer.is_valid():
+                    print("start following")
+                    follow_serializer.save()
+                    return JsonResponse({"detail": "Started Following"},
+                                        status=status.HTTP_200_OK)
+
+                return JsonResponse({"detail": "Invalid Data"},
+                                    status=status.HTTP_400_BAD_REQUEST)
+            following.delete()
+            return JsonResponse({"detail": "Unfollowed"},
+                                status=status.HTTP_200_OK)
+
+        return JsonResponse({"detail": "You can't follow yourself"},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+
+class FollowersView(APIView):
+    """API to get followers"""
+
+    def get(self, request, user_id):
+
+        followersresponse = {
+            "followers": []
+        }
+
+        followerslist = []
+
+        user = get_object_or_404(User, user_id=user_id)
+
+        followers = Followings.objects.filter(follower_id=user.user_id)
+
+        for follower in followers:
+            followerdict = {}
+            follower_user_id = follower.followed_by_id.user_id
+            followerobj = get_object_or_404(User, user_id=follower_user_id)
+            followerdict['name'] = followerobj.name
+            followerdict['id'] = follower_user_id
+            followerdict['username'] = followerobj.username
+            followersresponse["followers"].append(followerdict)
+
+        if followers:
+            return JsonResponse(followersresponse,
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "no followers"},
+                            status=status.HTTP_200_OK)
+
+
+class FollowingsView(APIView):
+    """API to get followers"""
+
+    def get(self, request, user_id):
+
+        followingsresponse = {
+            "followings": []
+        }
+
+        followerslist = []
+
+        user = get_object_or_404(User, user_id=user_id)
+
+        followings = Followings.objects.filter(followed_by_id=user.user_id)
+
+        for following in followings:
+            followingdict = {}
+            following_user_id = following.follower_id.user_id
+            followingobj = get_object_or_404(User, user_id=following_user_id)
+            followingdict['name'] = followingobj.name
+            followingdict['id'] = following_user_id
+            followingdict['username'] = followingobj.username
+            followingsresponse["followings"].append(followingdict)
+
+        if followings:
+            return JsonResponse(followingsresponse,
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "no followings"},
+                            status=status.HTTP_200_OK)
