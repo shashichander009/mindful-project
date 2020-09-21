@@ -11,6 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from elasticsearch_dsl import Q
 
 from .serializers import (
     LoginSerializer,
@@ -20,6 +21,8 @@ from .serializers import (
     BookmarkSerializer,
     ReportSerializer,
     FollowingsSerializer,
+    UserSearchSerializer,
+    PostSearchSerializer,
 )
 from .models import (
     User,
@@ -29,6 +32,7 @@ from .models import (
     ReportPost,
     Followings,
 )
+from .documents import UserDocument, PostDocument
 
 
 class LoginView(APIView):
@@ -448,3 +452,31 @@ def get_profile(request):
     user_serializer = UserSerializer(user)
     return JsonResponse(user_serializer.data,
                         status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def search(request):
+    if request.method == 'GET':
+        request_data = request.GET
+        param = request.GET.get('param', '')
+
+        if param:
+            param = '.*{}.*'.format(param)
+
+            user_query = Q('regexp', name=param) | Q('regexp', username=param)
+            user_search = UserDocument.search().query(user_query)
+
+            post_search = PostDocument.search().query('regexp', content=param)
+
+            user_search_data = UserSearchSerializer(user_search,
+                                                    many=True).data
+            post_search_data = PostSearchSerializer(post_search,
+                                                    many=True).data
+
+            response = {
+                'user_search_data': user_search_data if user_search_data else None,
+                'post_search_data': post_search_data if post_search_data else None
+            }
+            return JsonResponse(response, status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "No parameter given to search"},
+                            status=status.HTTP_400_BAD_REQUEST)
