@@ -108,7 +108,7 @@ class UserView(APIView):
             return JsonResponse({"detail": "User Updated"},
                                 status=status.HTTP_200_OK)
         return JsonResponse({"detail": "User Not Updated"},
-                                status=status.HTTP_417_EXPECTATION_FAILED)
+                            status=status.HTTP_417_EXPECTATION_FAILED)
 
     def delete(self, request):
         user = request.user
@@ -395,7 +395,7 @@ class FollowersView(APIView):
 
 
 class FollowingsView(APIView):
-    """API to get followers"""
+    """API to get who the user is following"""
 
     def get(self, request, user_id):
 
@@ -434,7 +434,7 @@ def get_profile(request):
             user_id = int(request_data.get('userid', ''))
         except ValueError:
             return JsonResponse({"detail": "Invalid User ID"},
-                        status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_400_BAD_REQUEST)
 
         user = get_object_or_404(User,
                                  user_id=user_id)
@@ -443,7 +443,7 @@ def get_profile(request):
             user = request.user
         else:
             return JsonResponse({"detail": "No User ID Given"},
-                        status=status.HTTP_400_BAD_REQUEST)
+                                status=status.HTTP_400_BAD_REQUEST)
 
     user_serializer = UserSerializer(user)
     return JsonResponse(user_serializer.data,
