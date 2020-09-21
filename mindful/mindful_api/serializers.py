@@ -245,3 +245,17 @@ class FollowingsSerializer(serializers.ModelSerializer):
             'followed_by_id',
             'follow_time',
         ]
+
+
+class UserSearchSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ['user_id', 'username', 'name',]
+
+
+class PostSearchSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Post
+        fields = ['post_id', 'content',]

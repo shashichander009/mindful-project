@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_swagger',
     'corsheaders',
+    'django_elasticsearch_dsl',
 ]
 
 REST_FRAMEWORK = {
@@ -96,6 +97,12 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'user_id',
 }
 
+ELASTICSEARCH_DSL = {
+    'default': {
+        # 'hosts': 'http://localhost:9200'
+        'hosts': 'https://h1f5688lbo:qrasnnwl7l@mindful-testing-5655155969.ap-southeast-2.bonsaisearch.net:443'
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

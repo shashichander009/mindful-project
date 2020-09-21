@@ -44,4 +44,7 @@ urlpatterns = [
     path('profile/',
          views.get_profile,
          name='get-profile'),
+    path('search/',
+         views.search,
+         name='search'),
 ]
