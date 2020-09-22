@@ -480,3 +480,47 @@ def search(request):
             return JsonResponse(response, status=status.HTTP_200_OK)
         return JsonResponse({"detail": "No parameter given to search"},
                             status=status.HTTP_400_BAD_REQUEST)
+
+
+class SuggestionView(APIView):
+    """API for create, delete, update and get User"""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        request_data = request.GET
+
+        if 'items' in request_data:
+            items = int(request_data.get('items', 0))
+
+            user_id = request.user.user_id
+
+            followings = list(
+                Followings.objects.filter(followed_by_id=user_id).values('follower_id'))
+
+            followinglist = []
+            for following in followings:
+                followinglist.append(following['follower_id'])
+
+            followinglist.append(user_id)
+
+            suggestions = User.objects.exclude(user_id__in=followinglist)
+
+            suggestionsresponse = {
+                "suggestions": []
+            }
+
+            for suggestion in suggestions:
+                if len(suggestionsresponse["suggestions"]) < items:
+                    suggestiondict = {}
+                    suggestion_user_id = suggestion.user_id
+                    suggestiondict['name'] = suggestion.name
+                    suggestiondict['id'] = suggestion_user_id
+                    suggestiondict['username'] = suggestion.username
+                    suggestionsresponse["suggestions"].append(suggestiondict)
+
+            return JsonResponse(suggestionsresponse,
+                                status=status.HTTP_200_OK)
+
+        return JsonResponse({"detail": "No items parameter given to search"},
+                            status=status.HTTP_400_BAD_REQUEST)

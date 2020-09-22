@@ -47,4 +47,7 @@ urlpatterns = [
     path('search/',
          views.search,
          name='search'),
+    path('suggest/',
+         views.SuggestionView.as_view(),
+         name='suggest'),
 ]
