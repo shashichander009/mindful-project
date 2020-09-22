@@ -50,4 +50,7 @@ urlpatterns = [
     path('suggest/',
          views.SuggestionView.as_view(),
          name='suggest'),
+    path('timeline/',
+         views.timeline,
+         name='timeline'),
 ]

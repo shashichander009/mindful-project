@@ -254,7 +254,20 @@ class UserSearchSerializer(serializers.ModelSerializer):
 
 
 class PostSearchSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Post
         fields = ['post_id', 'content', ]
+
+
+class TimelineSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    username = serializers.CharField()
+    profile_picture = serializers.ImageField()
+    post_id = serializers.CharField()
+    content = serializers.CharField()
+    has_media = serializers.BooleanField()
+    image = serializers.ImageField()
+    created_at = serializers.DateTimeField()
+    likes_count = serializers.IntegerField()
+    is_liked = serializers.BooleanField()
+    is_bookmarked = serializers.BooleanField()
