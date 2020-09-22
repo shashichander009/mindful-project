@@ -9,7 +9,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated, BasePermission
-from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from elasticsearch_dsl import Q
 
@@ -217,7 +216,7 @@ class LikePostView(APIView):
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
-        post = get_object_or_404(Post, post_id=post_id)
+        get_object_or_404(Post, post_id=post_id)
 
         like = Likes.objects.filter(post_id=post_id,
                                     user_id=request_user.user_id)
@@ -245,7 +244,7 @@ class BookmarkPostView(APIView):
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
 
-        post = get_object_or_404(Post, post_id=post_id)
+        get_object_or_404(Post, post_id=post_id)
 
         bookmark = Bookmarks.objects.filter(post_id=post_id,
                                             user_id=request_user.user_id)
@@ -279,7 +278,7 @@ class ReportPostView(APIView):
         post_user_id = post.user_id.user_id
         request_user_id = request_user.user_id
 
-        if not post_user_id is request_user_id:
+        if post_user_id is not request_user_id:
 
             report = ReportPost.objects.filter(post_id=post_id,
                                                user_id=request_user_id)
@@ -342,12 +341,13 @@ class FollowView(APIView):
         request.data['follower_id'] = user_id
         request.data['followed_by_id'] = request_user_id
 
-        if not user_to_be_followed_user_id is request_user_id:
+        if user_to_be_followed_user_id is not request_user_id:
 
             print(user_to_be_followed_user_id)
             print(request_user_id)
             following = Followings.objects.filter(
-                follower_id=user_to_be_followed_user_id, followed_by_id=request_user_id)
+                follower_id=user_to_be_followed_user_id,
+                followed_by_id=request_user_id)
 
             if not following:
                 follow_serializer = FollowingsSerializer(data=request.data)
@@ -375,8 +375,6 @@ class FollowersView(APIView):
         followersresponse = {
             "followers": []
         }
-
-        followerslist = []
 
         user = get_object_or_404(User, user_id=user_id)
 
@@ -406,8 +404,6 @@ class FollowingsView(APIView):
         followingsresponse = {
             "followings": []
         }
-
-        followerslist = []
 
         user = get_object_or_404(User, user_id=user_id)
 
@@ -457,7 +453,6 @@ def get_profile(request):
 @api_view(['GET'])
 def search(request):
     if request.method == 'GET':
-        request_data = request.GET
         param = request.GET.get('param', '')
 
         if param:
@@ -483,7 +478,7 @@ def search(request):
 
 
 class SuggestionView(APIView):
-    """API for create, delete, update and get User"""
+    """API for Suggest User Profiles to follow"""
 
     permission_classes = [IsAuthenticated]
 
@@ -496,7 +491,8 @@ class SuggestionView(APIView):
             user_id = request.user.user_id
 
             followings = list(
-                Followings.objects.filter(followed_by_id=user_id).values('follower_id'))
+                Followings.objects.filter(followed_by_id=user_id).
+                values('follower_id'))
 
             followinglist = []
             for following in followings:

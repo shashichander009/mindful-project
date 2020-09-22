@@ -18,7 +18,7 @@ class UserDocument(Document):
 
     class Django:
         model = User
-        fields = ['user_id', 'username', 'name',]
+        fields = ['user_id', 'username', 'name']
 
 
 @registry.register_document
@@ -29,4 +29,4 @@ class PostDocument(Document):
 
     class Django:
         model = Post
-        fields = ['post_id', 'content',]
+        fields = ['post_id', 'content']

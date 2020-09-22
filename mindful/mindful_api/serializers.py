@@ -248,14 +248,13 @@ class FollowingsSerializer(serializers.ModelSerializer):
 
 
 class UserSearchSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = User
-        fields = ['user_id', 'username', 'name',]
+        fields = ['user_id', 'username', 'name', ]
 
 
 class PostSearchSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Post
-        fields = ['post_id', 'content',]
+        fields = ['post_id', 'content', ]
