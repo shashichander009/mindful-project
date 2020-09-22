@@ -544,15 +544,9 @@ def timeline(request):
         for post in posts:
             liked_by_me = Likes.objects.filter(post_id=post.post_id,
                                                user_id=request_user_id)
-            is_liked = False
-            if liked_by_me:
-                is_liked = True
 
             bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
                                                         user_id=request_user_id)
-            is_bookmarked = False
-            if bookmarked_by_me:
-                is_bookmarked = True
 
             timeline_obj = {
                 'name': post.user_id.name,
@@ -560,12 +554,13 @@ def timeline(request):
                 'profile_picture': post.user_id.profile_picture,
                 'post_id': post.post_id,
                 'content': post.content,
+                'sentiment': post.tags.get('sentiment', ''),
                 'has_media': post.has_media,
                 'image': post.image,
                 'created_at': post.created_at,
                 'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
-                'is_liked': is_liked,
-                'is_bookmarked': is_bookmarked,
+                'is_liked': True if liked_by_me else False,
+                'is_bookmarked': True if bookmarked_by_me else False,
             }
 
             timeline.append(timeline_obj)
