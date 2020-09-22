@@ -432,7 +432,15 @@ email: preetom @gmail.com 1 [{"added": {}}] 8 1 22 2020 -09 -21 16 :25 :27.56484
 email: preetom @gmail.com is reported by name: preetom,
 email: preetom @gmail.com 1 [{"added": {}}] 8 1 23 2020 -09 -21 16 :25 :36.138105 + 05 :30 4 70 is posted by name: preetom,
 email: preetom @gmail.com is reported by name: mukund,
-email: mukund @gmail.com 1 [{"added": {}}] 8 1 \.--
+email: mukund @gmail.com 1 [{"added": {}}] 8 1 24 2020 -09 -22 08 :38 :36.811502 + 05 :30 7 name: shashi,
+email: shashi @mountblue.io is following name: preetom,
+email: preetom @gmail.com 1 [{"added": {}}] 10 1 25 2020 -09 -22 08 :39 :06.945419 + 05 :30 8 name: preetom,
+email: preetom @gmail.com is following name: shashi,
+email: shashi @mountblue.io 1 [{"added": {}}] 10 1 26 2020 -09 -22 08 :39 :25.993006 + 05 :30 8 name: preetom,
+email: preetom @gmail.com is following name: shashi,
+email: shashi @mountblue.io 3 10 1 27 2020 -09 -22 08 :39 :35.741789 + 05 :30 9 name: preetom,
+email: preetom @gmail.com is following name: Rohit,
+email: rohit @gmail.com 1 [{"added": {}}] 10 1 \.--
 -- Data for Name: django_content_type; Type: TABLE DATA; Schema: public; Owner: mindful
 --
 COPY public.django_content_type (id, app_label, model)
@@ -447,7 +455,7 @@ FROM stdin;
 --
 COPY public.django_session (session_key, session_data, expire_date)
 FROM stdin;
-4sy7lzlqqgnl7fyqyhivvfb0rpoe1juf Yjg4NGZhNGQ0ZjAzYzBlMjhjNzhhMWVmNTEyNzk5ZjkzZTI2YmQwMDp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiJhMTdkZjNiZjU5ZTdhZDRhNTg1M2YwYjNkNmQ0ZGI2NTZkYjM1ZTY0In0 = 2020 -10 -05 15 :25 :01.14475 + 05 :30 kqp0kzjo6pyy1d1khkfm44pgkbhtov1r N2QyY2M5MDAwMjA5NjgxMmNkYjE2ODUyOTk2OWMwMGQxZWY5YmFkYjp7Il9hdXRoX3VzZXJfaWQiOiI3IiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiJlNDM3M2NkZmNlNWRiNTExNTlmM2IwZjhkOThhMzVhNmEwMjY0OTE2In0 = 2020 -10 -05 16 :20 :11.682483 + 05 :30 \.--
+4sy7lzlqqgnl7fyqyhivvfb0rpoe1juf Yjg4NGZhNGQ0ZjAzYzBlMjhjNzhhMWVmNTEyNzk5ZjkzZTI2YmQwMDp7Il9hdXRoX3VzZXJfaWQiOiIxIiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiJhMTdkZjNiZjU5ZTdhZDRhNTg1M2YwYjNkNmQ0ZGI2NTZkYjM1ZTY0In0 = 2020 -10 -05 15 :25 :01.14475 + 05 :30 kqp0kzjo6pyy1d1khkfm44pgkbhtov1r N2QyY2M5MDAwMjA5NjgxMmNkYjE2ODUyOTk2OWMwMGQxZWY5YmFkYjp7Il9hdXRoX3VzZXJfaWQiOiI3IiwiX2F1dGhfdXNlcl9iYWNrZW5kIjoiZGphbmdvLmNvbnRyaWIuYXV0aC5iYWNrZW5kcy5Nb2RlbEJhY2tlbmQiLCJfYXV0aF91c2VyX2hhc2giOiJlNDM3M2NkZmNlNWRiNTExNTlmM2IwZjhkOThhMzVhNmEwMjY0OTE2In0 = 2020 -10 -06 11 :02 :25.421368 + 05 :30 \.--
 -- Data for Name: mindful_api_bookmarks; Type: TABLE DATA; Schema: public; Owner: mindful
 --
 COPY public.mindful_api_bookmarks (
@@ -467,12 +475,12 @@ COPY public.mindful_api_followings (
     follower_id_id
 )
 FROM stdin;
-1 2020 -09 -21 16 :23 :25.27862 + 05 :30 4 3 2 2020 -09 -21 16 :23 :32.846641 + 05 :30 5 6 3 2020 -09 -21 16 :23 :41.289708 + 05 :30 1 3 4 2020 -09 -21 16 :23 :47.571829 + 05 :30 2 7 5 2020 -09 -21 16 :23 :54.069594 + 05 :30 7 2 6 2020 -09 -21 16 :24 :00.339953 + 05 :30 6 4 \.--
+1 2020 -09 -21 16 :23 :25.27862 + 05 :30 4 3 2 2020 -09 -21 16 :23 :32.846641 + 05 :30 5 6 3 2020 -09 -21 16 :23 :41.289708 + 05 :30 1 3 4 2020 -09 -21 16 :23 :47.571829 + 05 :30 2 7 5 2020 -09 -21 16 :23 :54.069594 + 05 :30 7 2 6 2020 -09 -21 16 :24 :00.339953 + 05 :30 6 4 7 2020 -09 -22 08 :38 :36.808092 + 05 :30 2 7 9 2020 -09 -22 08 :39 :35.739145 + 05 :30 7 4 \.--
 -- Data for Name: mindful_api_likes; Type: TABLE DATA; Schema: public; Owner: mindful
 --
 COPY public.mindful_api_likes (like_id, like_time, post_id_id, user_id_id)
 FROM stdin;
-1 2020 -09 -21 16 :22 :15.327453 + 05 :30 4 3 2 2020 -09 -21 16 :22 :24.482152 + 05 :30 6 3 3 2020 -09 -21 16 :22 :31.698023 + 05 :30 17 5 4 2020 -09 -21 16 :22 :41.628992 + 05 :30 60 4 5 2020 -09 -21 16 :22 :48.083148 + 05 :30 9 7 6 2020 -09 -21 16 :22 :56.661067 + 05 :30 64 6 7 2020 -09 -21 16 :23 :07.151515 + 05 :30 19 2 \.--
+1 2020 -09 -21 16 :22 :15.327453 + 05 :30 4 3 2 2020 -09 -21 16 :22 :24.482152 + 05 :30 6 3 3 2020 -09 -21 16 :22 :31.698023 + 05 :30 17 5 4 2020 -09 -21 16 :22 :41.628992 + 05 :30 60 4 5 2020 -09 -21 16 :22 :48.083148 + 05 :30 9 7 6 2020 -09 -21 16 :22 :56.661067 + 05 :30 64 6 7 2020 -09 -21 16 :23 :07.151515 + 05 :30 19 2 8 2020 -09 -22 11 :02 :43.068184 + 05 :30 2 7 \.--
 -- Data for Name: mindful_api_post; Type: TABLE DATA; Schema: public; Owner: mindful
 --
 COPY public.mindful_api_post (
@@ -489,8 +497,7 @@ FROM stdin;
 "sentiment": "neutral" } 2 2 Apparently I wouldn ’ t make a good spy because I have no idea what just happened.f 2020 -09 -21 15 :29 :27.214889 + 05 :30 { "hashtag": [],
 "sentiment": "neutral" } 2 3 If you have to watch two hours of movie video game you pray that this one is it.f 2020 -09 -21 15 :29 :27.230343 + 05 :30 { "hashtag": [],
 "sentiment": "neutral" } 2 4 If you ’ re lucky enough to miss the opening scene this movie might be the best of its ilk.f 2020 -09 -21 15 :29 :27.237725 + 05 :30 { "hashtag": [],
-"sentiment": "positive" } 2 5 Somehow this goofy #Christian redux of #The Road Warrior with amazing look and feel ends up a little flat.		f	2020-09-21 15:29:27.248115+05:30	{"hashtag": ["#Christian", "#The"], "sentiment": "positive"}	2
-6 Just proves that #Ridley is the best filmmaker on Earth AND on Mars.		f	2020-09-21 15:29:27.249249+05:30	{"hashtag": ["#Ridley"], "sentiment": "positive"}	2
+"sentiment": "positive" } 2 6 Just proves that #Ridley is the best filmmaker on Earth AND on Mars.		f	2020-09-21 15:29:27.249249+05:30	{"hashtag": ["#Ridley"], "sentiment": "positive"}	2
 7 If theatre has become just an excuse to write snappy dialogue then film about theatre is just an excuse to write snappy dialogue on steroids.f 2020 -09 -21 15 :29 :27.27739 + 05 :30 { "hashtag": [],
 "sentiment": "neutral" } 2 8 Weird sad
 and boring but I kinda liked it.f 2020 -09 -21 15 :29 :27.282828 + 05 :30 { "hashtag": [],
@@ -616,7 +623,8 @@ after another that they got wrong.f 2020 -09 -21 15 :31 :10.171615 + 05 :30 { "h
                 but if you ’ re trying to fall asleep
                 and can ’ t,
                 it ’ s a godsend.f 2020 -09 -21 16 :21 :22.579817 + 05 :30 { "hashtag": [],
-                "sentiment": "positive" } 7 \.--
+                "sentiment": "positive" } 7 5 Somehow this goofy shashi redux of #The Road Warrior with amazing look and feel ends up a little flat.		f	2020-09-21 15:29:27.248115+05:30	{"hashtag": ["#Christian", "#The"], "sentiment": "positive"}	2
+                \.--
                 -- Data for Name: mindful_api_reportpost; Type: TABLE DATA; Schema: public; Owner: mindful
                 --
                 COPY public.mindful_api_reportpost (
@@ -627,7 +635,7 @@ after another that they got wrong.f 2020 -09 -21 15 :31 :10.171615 + 05 :30 { "h
                     user_id_id
                 )
             FROM stdin;
-1 nohthng 2020 -09 -21 16 :25 :08.721834 + 05 :30 20 5 2 ss 2020 -09 -21 16 :25 :17.847986 + 05 :30 70 7 3 ss 2020 -09 -21 16 :25 :27.562131 + 05 :30 66 7 4 dd 2020 -09 -21 16 :25 :36.134904 + 05 :30 70 6 \.--
+1 nohthng 2020 -09 -21 16 :25 :08.721834 + 05 :30 20 5 2 ss 2020 -09 -21 16 :25 :17.847986 + 05 :30 70 7 3 ss 2020 -09 -21 16 :25 :27.562131 + 05 :30 66 7 4 dd 2020 -09 -21 16 :25 :36.134904 + 05 :30 70 6 5 2020 -09 -22 11 :05 :31.328083 + 05 :30 2 7 \.--
 -- Data for Name: mindful_api_user; Type: TABLE DATA; Schema: public; Owner: mindful
 --
 COPY public.mindful_api_user (
@@ -648,7 +656,7 @@ COPY public.mindful_api_user (
     security_que
 )
 FROM stdin;
-\ N 3 preetam @mountblue.io preetam preetam 1991 -12 -12 preetam t 2020 -09 -21 15 :26 :19.622957 + 05 :30 f f delhi delhi 2020 -09 -21 15 :28 :56.852719 + 05 :30 2 shashi @mountblue.io shashi pbkdf2_sha256 $150000$Ybvl9mkdJtrh$BXp / wCaosqI5fxs4uO2iwgT4eDDSuE8cZgkljRiMfsY = shashi 1991 -12 -12 shashi is a good boy user_images / 2.jpeg t 2020 -09 -21 15 :25 :38.546799 + 05 :30 f f delhi delhi 2020 -09 -21 15 :29 :40.021351 + 05 :30 1 admin @mountblue.io admin pbkdf2_sha256 $150000$5IilOPOPSHlm$sOqPHwlsDPaxEAOpGp81rS2725B + 4xs8g / Xd92DCSEU = \ N \ N \ N t 2020 -09 -21 15 :24 :38.429713 + 05 :30 t t \ N \ N 2020 -09 -21 15 :33 :58.199712 + 05 :30 4 rohit @gmail.com rohit pbkdf2_sha256 $150000$ozXox9EScqIG$mAdkV6wmGYOiRYpfq + sDQB9EFqfGD6Ug9YekvJQweL8 = Rohit 1996 -12 -13 Rohit is great user_images / 4.jpeg t 2020 -09 -21 15 :33 :45.001315 + 05 :30 f f chess hobby 2020 -09 -21 16 :14 :58.994036 + 05 :30 5 aditya @gmail.com aditya pbkdf2_sha256 $150000$qctfJdyr81GM$zPPuoDlk5Iu / zVbRt3smez9Dfev7lJi29AWUFiky46A = aditya 1996 -12 -13 aditya is great user_images / 5.jpeg t 2020 -09 -21 16 :14 :47.209588 + 05 :30 f f chess hobby 2020 -09 -21 16 :18 :31.706137 + 05 :30 6 mukund @gmail.com mukund pbkdf2_sha256 $150000$sr6fB3AqwIci$wpflydszA + 8p5yQzu2VmfUIr2UER / VgkcQS4b + HzSZc = mukund 1996 -12 -13 mukund is great user_images / 6.jpeg t 2020 -09 -21 16 :18 :22.581832 + 05 :30 f f chess hobby 2020 -09 -21 16 :20 :11.668847 + 05 :30 7 preetom @gmail.com preetamadmin pbkdf2_sha256 $150000$SKMbny9GKAlN$c3aoR / j0Q8y / LivuLRba1APyPUzbvb0AM / ikm7zSlu4 = preetom 1996 -12 -13 preetom is great user_images / 7.jpeg t 2020 -09 -21 16 :20 :00.656572 + 05 :30 f f chess hobby \.--
+\ N 3 preetam @mountblue.io preetam preetam 1991 -12 -12 preetam t 2020 -09 -21 15 :26 :19.622957 + 05 :30 f f delhi delhi 2020 -09 -21 15 :28 :56.852719 + 05 :30 2 shashi @mountblue.io shashi pbkdf2_sha256 $150000$Ybvl9mkdJtrh$BXp / wCaosqI5fxs4uO2iwgT4eDDSuE8cZgkljRiMfsY = shashi 1991 -12 -12 shashi is a good boy user_images / 2.jpeg t 2020 -09 -21 15 :25 :38.546799 + 05 :30 f f delhi delhi 2020 -09 -21 15 :29 :40.021351 + 05 :30 1 admin @mountblue.io admin pbkdf2_sha256 $150000$5IilOPOPSHlm$sOqPHwlsDPaxEAOpGp81rS2725B + 4xs8g / Xd92DCSEU = \ N \ N \ N t 2020 -09 -21 15 :24 :38.429713 + 05 :30 t t \ N \ N 2020 -09 -21 15 :33 :58.199712 + 05 :30 4 rohit @gmail.com rohit pbkdf2_sha256 $150000$ozXox9EScqIG$mAdkV6wmGYOiRYpfq + sDQB9EFqfGD6Ug9YekvJQweL8 = Rohit 1996 -12 -13 Rohit is great user_images / 4.jpeg t 2020 -09 -21 15 :33 :45.001315 + 05 :30 f f chess hobby 2020 -09 -21 16 :14 :58.994036 + 05 :30 5 aditya @gmail.com aditya pbkdf2_sha256 $150000$qctfJdyr81GM$zPPuoDlk5Iu / zVbRt3smez9Dfev7lJi29AWUFiky46A = aditya 1996 -12 -13 aditya is great user_images / 5.jpeg t 2020 -09 -21 16 :14 :47.209588 + 05 :30 f f chess hobby 2020 -09 -21 16 :18 :31.706137 + 05 :30 6 mukund @gmail.com mukund pbkdf2_sha256 $150000$sr6fB3AqwIci$wpflydszA + 8p5yQzu2VmfUIr2UER / VgkcQS4b + HzSZc = mukund 1996 -12 -13 mukund is great user_images / 6.jpeg t 2020 -09 -21 16 :18 :22.581832 + 05 :30 f f chess hobby 2020 -09 -22 11 :02 :24.107197 + 05 :30 7 preetom @gmail.com preetamadmin pbkdf2_sha256 $150000$SKMbny9GKAlN$c3aoR / j0Q8y / LivuLRba1APyPUzbvb0AM / ikm7zSlu4 = preetom 1996 -12 -13 preetom is great user_images / 7.jpeg t 2020 -09 -21 16 :20 :00.656572 + 05 :30 f f chess hobby \.--
 -- Name: auth_group_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mindful
 --
 SELECT pg_catalog.setval('public.auth_group_id_seq', 1, false);
@@ -663,7 +671,7 @@ SELECT pg_catalog.setval('public.auth_permission_id_seq', 44, true);
 --
 -- Name: django_admin_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mindful
 --
-SELECT pg_catalog.setval('public.django_admin_log_id_seq', 23, true);
+SELECT pg_catalog.setval('public.django_admin_log_id_seq', 27, true);
 --
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mindful
 --
@@ -685,13 +693,13 @@ SELECT pg_catalog.setval(
 --
 SELECT pg_catalog.setval(
         'public.mindful_api_followings_following_id_seq',
-        6,
+        9,
         true
     );
 --
 -- Name: mindful_api_likes_like_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mindful
 --
-SELECT pg_catalog.setval('public.mindful_api_likes_like_id_seq', 7, true);
+SELECT pg_catalog.setval('public.mindful_api_likes_like_id_seq', 8, true);
 --
 -- Name: mindful_api_post_post_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mindful
 --
@@ -701,7 +709,7 @@ SELECT pg_catalog.setval('public.mindful_api_post_post_id_seq', 81, true);
 --
 SELECT pg_catalog.setval(
         'public.mindful_api_reportpost_report_id_seq',
-        4,
+        5,
         true
     );
 --
