@@ -247,16 +247,16 @@ class FollowingsSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSearchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['user_id', 'username', 'name', ]
-
-
-class PostSearchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = ['post_id', 'content', ]
+class UserSearchSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    name = serializers.CharField()
+    username = serializers.CharField()
+    profile_picture = serializers.ImageField()
+    bio = serializers.CharField()
+    followers = serializers.IntegerField()
+    following = serializers.IntegerField()
+    is_own_id = serializers.BooleanField()
+    is_following = serializers.BooleanField()
 
 
 class TimelineSerializer(serializers.Serializer):

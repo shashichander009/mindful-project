@@ -21,7 +21,6 @@ from .serializers import (
     ReportSerializer,
     FollowingsSerializer,
     UserSearchSerializer,
-    PostSearchSerializer,
     TimelineSerializer,
 )
 from .models import (
@@ -451,9 +450,60 @@ def get_profile(request):
                         status=status.HTTP_200_OK)
 
 
+def create_user_obj(user, request_user_id):
+    """Creates an object with all the necessary details of a specific user
+       according the requested user"""
+
+    followed_by_me = Followings.objects.filter(follower_id=user.user_id,
+                                               followed_by_id=request_user_id)
+    user_obj = {
+        'user_id': user.user_id,
+        'name': user.name,
+        'username': user.username,
+        'profile_picture': user.profile_picture,
+        'bio': user.bio,
+        'followers': Followings.objects.filter(follower_id=user.user_id)
+                                       .count(),
+        'following': Followings.objects.filter(followed_by_id=user.user_id)
+                                       .count(),
+        'is_own_id': True if request_user_id == user.user_id else False,
+        'is_following': True if followed_by_me else False
+    }
+
+    return user_obj
+
+
+def create_post_obj(post, request_user_id):
+    """Creates an object with all the necessary details of a specific post
+       according the requested user"""
+
+    liked_by_me = Likes.objects.filter(post_id=post.post_id,
+                                       user_id=request_user_id)
+    bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
+                                                user_id=request_user_id)
+    post_obj = {
+        'name': post.user_id.name,
+        'username': post.user_id.username,
+        'profile_picture': post.user_id.profile_picture,
+        'post_id': post.post_id,
+        'content': post.content,
+        'sentiment': post.tags.get('sentiment', ''),
+        'has_media': post.has_media,
+        'image': post.image,
+        'created_at': post.created_at,
+        'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
+        'is_liked': True if liked_by_me else False,
+        'is_bookmarked': True if bookmarked_by_me else False,
+    }
+
+    return post_obj
+
+
 @api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
 def search(request):
     if request.method == 'GET':
+        request_user_id = request.user.user_id
         param = request.GET.get('param', '')
 
         if param:
@@ -464,14 +514,26 @@ def search(request):
 
             post_search = PostDocument.search().query('regexp', content=param)
 
-            user_search_data = UserSearchSerializer(user_search,
-                                                    many=True).data
-            post_search_data = PostSearchSerializer(post_search,
+            user_search_data = []
+            for user_in_search in user_search:
+                user = User.objects.get(user_id=user_in_search.user_id)
+                user_obj = create_user_obj(user, request_user_id)
+                user_search_data.append(user_obj)
+
+            post_search_data = []
+            for post_in_search in post_search:
+                post = Post.objects.get(post_id=post_in_search.post_id)
+                post_obj = create_post_obj(post, request_user_id)
+                post_search_data.append(post_obj)
+
+            user_search_result = UserSearchSerializer(user_search_data,
+                                                      many=True).data
+            post_search_result = TimelineSerializer(post_search_data,
                                                     many=True).data
 
             response = {
-                'user_search_data': user_search_data if user_search_data else None,
-                'post_search_data': post_search_data if post_search_data else None
+                'user_search_result': user_search_result if user_search_result else None,
+                'post_search_result': post_search_result if post_search_result else None
             }
             return JsonResponse(response, status=status.HTTP_200_OK)
         return JsonResponse({"detail": "No parameter given to search"},
@@ -535,34 +597,13 @@ def timeline(request):
         users_to_show_in_timeline = following_ids.copy()
         users_to_show_in_timeline.append(request_user_id)
 
-        timeline = []
-
         posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
                             .order_by('-created_at')\
                             .select_related('user_id')
 
+        timeline = []
         for post in posts:
-            liked_by_me = Likes.objects.filter(post_id=post.post_id,
-                                               user_id=request_user_id)
-
-            bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
-                                                        user_id=request_user_id)
-
-            timeline_obj = {
-                'name': post.user_id.name,
-                'username': post.user_id.username,
-                'profile_picture': post.user_id.profile_picture,
-                'post_id': post.post_id,
-                'content': post.content,
-                'sentiment': post.tags.get('sentiment', ''),
-                'has_media': post.has_media,
-                'image': post.image,
-                'created_at': post.created_at,
-                'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
-                'is_liked': True if liked_by_me else False,
-                'is_bookmarked': True if bookmarked_by_me else False,
-            }
-
+            timeline_obj = create_post_obj(post, request_user_id)
             timeline.append(timeline_obj)
 
         response = TimelineSerializer(timeline, many=True).data
