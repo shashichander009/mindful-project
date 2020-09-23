@@ -247,7 +247,7 @@ class FollowingsSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserSearchSerializer(serializers.Serializer):
+class UserProfileSerializer(serializers.Serializer):
     user_id = serializers.CharField()
     name = serializers.CharField()
     username = serializers.CharField()
@@ -274,11 +274,10 @@ class TimelineSerializer(serializers.Serializer):
     is_bookmarked = serializers.BooleanField()
 
 
-class ProfileSerializer(serializers.Serializer):
+class FollowingCardSerializer(serializers.Serializer):
+    id = serializers.CharField()
     name = serializers.CharField()
     username = serializers.CharField()
     profile_picture = serializers.ImageField()
-    following_count = serializers.IntegerField()
-    followers_count = serializers.IntegerField()
     is_followed = serializers.BooleanField()
-    bio = serializers.CharField()
+    is_own_id = serializers.BooleanField()

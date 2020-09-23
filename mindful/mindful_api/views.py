@@ -20,9 +20,9 @@ from .serializers import (
     BookmarkSerializer,
     ReportSerializer,
     FollowingsSerializer,
-    UserSearchSerializer,
+    UserProfileSerializer,
     TimelineSerializer,
-    ProfileSerializer,
+    FollowingCardSerializer,
 )
 from .models import (
     User,
@@ -373,54 +373,77 @@ class FollowersView(APIView):
 
     def get(self, request, user_id):
 
-        followersresponse = {
-            "followers": []
-        }
+        request_user_id = request.user.user_id
 
         user = get_object_or_404(User, user_id=user_id)
 
         followers = Followings.objects.filter(follower_id=user.user_id)
 
+        followerslist = []
+
         for follower in followers:
-            followerdict = {}
+
             follower_user_id = follower.followed_by_id.user_id
+
             followerobj = get_object_or_404(User, user_id=follower_user_id)
-            followerdict['name'] = followerobj.name
-            followerdict['id'] = follower_user_id
-            followerdict['username'] = followerobj.username
-            followersresponse["followers"].append(followerdict)
+
+            followed_by_me = Followings.objects.filter(follower_id=follower_user_id,
+                                                       followed_by_id=request_user_id)
+            followerdict = {
+                'name': followerobj.name,
+                'id': follower_user_id,
+                'username': followerobj.username,
+                'profile_picture': followerobj.profile_picture,
+                'is_followed': True if followed_by_me else False,
+                'is_own_id': True if follower_user_id == request_user_id else False,
+            }
+
+            followerslist.append(followerdict)
+
+        followersresponse = FollowingCardSerializer(
+            followerslist, many=True).data
 
         if followers:
-            return JsonResponse(followersresponse,
+            return JsonResponse({"followers": followersresponse},
                                 status=status.HTTP_200_OK)
         return JsonResponse({"detail": "no followers"},
                             status=status.HTTP_200_OK)
 
 
 class FollowingsView(APIView):
-    """API to get who the user is following"""
+    """API to get followers"""
 
     def get(self, request, user_id):
 
-        followingsresponse = {
-            "followings": []
-        }
-
+        request_user_id = request.user.user_id
         user = get_object_or_404(User, user_id=user_id)
-
         followings = Followings.objects.filter(followed_by_id=user.user_id)
 
+        followinglist = []
+
         for following in followings:
-            followingdict = {}
+
             following_user_id = following.follower_id.user_id
             followingobj = get_object_or_404(User, user_id=following_user_id)
-            followingdict['name'] = followingobj.name
-            followingdict['id'] = following_user_id
-            followingdict['username'] = followingobj.username
-            followingsresponse["followings"].append(followingdict)
+
+            followed_by_me = Followings.objects.filter(follower_id=following_user_id,
+                                                       followed_by_id=request_user_id)
+            followingdict = {
+                'name': followingobj.name,
+                'id': following_user_id,
+                'username': followingobj.username,
+                'profile_picture': followingobj.profile_picture,
+                'is_followed': True if followed_by_me else False,
+                'is_own_id': True if following_user_id == request_user_id else False,
+            }
+
+            followinglist.append(followingdict)
+
+        followingsresponse = FollowingCardSerializer(
+            followinglist, many=True).data
 
         if followings:
-            return JsonResponse(followingsresponse,
+            return JsonResponse({"followings": followingsresponse},
                                 status=status.HTTP_200_OK)
         return JsonResponse({"detail": "no followings"},
                             status=status.HTTP_200_OK)
@@ -527,8 +550,8 @@ def search(request):
                 post_obj = create_post_obj(post, request_user_id)
                 post_search_data.append(post_obj)
 
-            user_search_result = UserSearchSerializer(user_search_data,
-                                                      many=True).data
+            user_search_result = UserProfileSerializer(user_search_data,
+                                                       many=True).data
             post_search_result = TimelineSerializer(post_search_data,
                                                     many=True).data
 
@@ -622,17 +645,9 @@ def profile_timeline(request, user_id):
 
         user = get_object_or_404(User, user_id=user_id)
 
-        profile_obj = {
-            'name': user.name,
-            'username': user.username,
-            'profile_picture': user.profile_picture,
-            'following_count': Followings.objects.filter(followed_by_id=user_id).count(),
-            'followers_count': Followings.objects.filter(follower_id=user_id).count(),
-            'is_followed': True if followed_by_me else False,
-            'bio': user.bio
-        }
+        profile_obj = create_user_obj(user, request_user_id)
 
-        profile_response = ProfileSerializer(profile_obj).data
+        profile_response = UserProfileSerializer(profile_obj).data
 
         followings = Followings.objects.filter(followed_by_id=request_user_id)
         following_ids = [f.follower_id.user_id for f in followings]
@@ -640,31 +655,12 @@ def profile_timeline(request, user_id):
         users_to_show_in_timeline = following_ids.copy()
         users_to_show_in_timeline.append(request_user_id)
 
-        timeline = []
-
         posts = Post.objects.filter(user_id=user_id).order_by('-created_at')
 
+        timeline = []
+
         for post in posts:
-            liked_by_me = Likes.objects.filter(post_id=post.post_id,
-                                               user_id=request_user_id)
-
-            bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
-                                                        user_id=request_user_id)
-            timeline_obj = {
-                'name': post.user_id.name,
-                'username': post.user_id.username,
-                'profile_picture': post.user_id.profile_picture,
-                'post_id': post.post_id,
-                'content': post.content,
-                'has_media': post.has_media,
-                'image': post.image,
-                'sentiment': post.tags.get('sentiment', ''),
-                'created_at': post.created_at,
-                'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
-                'is_liked': True if liked_by_me else False,
-                'is_bookmarked': True if bookmarked_by_me else False,
-            }
-
+            timeline_obj = create_post_obj(post, request_user_id)
             timeline.append(timeline_obj)
 
         response = TimelineSerializer(timeline, many=True).data
