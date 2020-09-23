@@ -56,4 +56,7 @@ urlpatterns = [
     path('profiletimeline/<user_id>/',
          views.profile_timeline,
          name='profile-timeline'),
+    path('timeline-status/',
+         views.timeline_status,
+         name='timeline-status')
 ]
