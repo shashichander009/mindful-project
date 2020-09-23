@@ -578,9 +578,6 @@ def profile_timeline(request, user_id):
 
         followed_by_me = Followings.objects.filter(follower_id=user_id,
                                                    followed_by_id=request_user_id)
-        is_followed = False
-        if followed_by_me:
-            is_followed = True
 
         user = get_object_or_404(User, user_id=user_id)
 
@@ -590,7 +587,7 @@ def profile_timeline(request, user_id):
             'profile_picture': user.profile_picture,
             'following_count': Followings.objects.filter(followed_by_id=user_id).count(),
             'followers_count': Followings.objects.filter(follower_id=user_id).count(),
-            'is_followed': is_followed,
+            'is_followed': True if followed_by_me else False,
             'bio': user.bio
         }
 
@@ -609,16 +606,9 @@ def profile_timeline(request, user_id):
         for post in posts:
             liked_by_me = Likes.objects.filter(post_id=post.post_id,
                                                user_id=request_user_id)
-            is_liked = False
-            if liked_by_me:
-                is_liked = True
 
             bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
                                                         user_id=request_user_id)
-            is_bookmarked = False
-            if bookmarked_by_me:
-                is_bookmarked = True
-
             timeline_obj = {
                 'name': post.user_id.name,
                 'username': post.user_id.username,
@@ -627,10 +617,11 @@ def profile_timeline(request, user_id):
                 'content': post.content,
                 'has_media': post.has_media,
                 'image': post.image,
+                'sentiment': post.tags.get('sentiment', ''),
                 'created_at': post.created_at,
                 'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
-                'is_liked': is_liked,
-                'is_bookmarked': is_bookmarked,
+                'is_liked': True if liked_by_me else False,
+                'is_bookmarked': True if bookmarked_by_me else False,
             }
 
             timeline.append(timeline_obj)
