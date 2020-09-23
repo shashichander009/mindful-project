@@ -265,6 +265,7 @@ class TimelineSerializer(serializers.Serializer):
     profile_picture = serializers.ImageField()
     post_id = serializers.CharField()
     content = serializers.CharField()
+    sentiment = serializers.CharField()
     has_media = serializers.BooleanField()
     image = serializers.ImageField()
     created_at = serializers.DateTimeField()
