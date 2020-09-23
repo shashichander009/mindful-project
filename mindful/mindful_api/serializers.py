@@ -271,3 +271,13 @@ class TimelineSerializer(serializers.Serializer):
     likes_count = serializers.IntegerField()
     is_liked = serializers.BooleanField()
     is_bookmarked = serializers.BooleanField()
+
+
+class ProfileSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    username = serializers.CharField()
+    profile_picture = serializers.ImageField()
+    following_count = serializers.IntegerField()
+    followers_count = serializers.IntegerField()
+    is_followed = serializers.BooleanField()
+    bio = serializers.CharField()

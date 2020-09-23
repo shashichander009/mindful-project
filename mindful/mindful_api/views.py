@@ -23,6 +23,7 @@ from .serializers import (
     UserSearchSerializer,
     PostSearchSerializer,
     TimelineSerializer,
+    ProfileSerializer,
 )
 from .models import (
     User,
@@ -572,3 +573,73 @@ def timeline(request):
 
         response = TimelineSerializer(timeline, many=True).data
         return JsonResponse({'posts': response}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def profile_timeline(request, user_id):
+    if request.method == 'GET':
+        request_user_id = request.user.user_id
+
+        followed_by_me = Followings.objects.filter(follower_id=user_id,
+                                                   followed_by_id=request_user_id)
+        is_followed = False
+        if followed_by_me:
+            is_followed = True
+
+        user = get_object_or_404(User, user_id=user_id)
+
+        profile_obj = {
+            'name': user.name,
+            'username': user.username,
+            'profile_picture': user.profile_picture,
+            'following_count': Followings.objects.filter(followed_by_id=user_id).count(),
+            'followers_count': Followings.objects.filter(follower_id=user_id).count(),
+            'is_followed': is_followed,
+            'bio': user.bio
+        }
+
+        profile_response = ProfileSerializer(profile_obj).data
+
+        followings = Followings.objects.filter(followed_by_id=request_user_id)
+        following_ids = [f.follower_id.user_id for f in followings]
+
+        users_to_show_in_timeline = following_ids.copy()
+        users_to_show_in_timeline.append(request_user_id)
+
+        timeline = []
+
+        posts = Post.objects.filter(user_id=user_id).order_by('-created_at')
+
+        for post in posts:
+            liked_by_me = Likes.objects.filter(post_id=post.post_id,
+                                               user_id=request_user_id)
+            is_liked = False
+            if liked_by_me:
+                is_liked = True
+
+            bookmarked_by_me = Bookmarks.objects.filter(post_id=post.post_id,
+                                                        user_id=request_user_id)
+            is_bookmarked = False
+            if bookmarked_by_me:
+                is_bookmarked = True
+
+            timeline_obj = {
+                'name': post.user_id.name,
+                'username': post.user_id.username,
+                'profile_picture': post.user_id.profile_picture,
+                'post_id': post.post_id,
+                'content': post.content,
+                'has_media': post.has_media,
+                'image': post.image,
+                'created_at': post.created_at,
+                'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
+                'is_liked': is_liked,
+                'is_bookmarked': is_bookmarked,
+            }
+
+            timeline.append(timeline_obj)
+
+        response = TimelineSerializer(timeline, many=True).data
+        return JsonResponse({"profile": profile_response, 'posts': response},
+                            status=status.HTTP_200_OK)
