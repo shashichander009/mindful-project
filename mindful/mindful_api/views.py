@@ -104,6 +104,7 @@ class UserView(APIView):
             user_serializer.save()
             return JsonResponse({"detail": "User Created"},
                                 status=status.HTTP_201_CREATED)
+        print(user_serializer.errors)
         return JsonResponse({"detail": "User Not Created"},
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
