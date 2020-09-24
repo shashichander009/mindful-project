@@ -50,7 +50,8 @@ class LoginView(APIView):
             jwt = TokenObtainPairSerializer.get_token(user=user)
             token = {
                 'refresh': str(jwt),
-                'access': str(jwt.access_token)
+                'access': str(jwt.access_token),
+                'is_first_login': True if not user.last_active else False
             }
 
             return JsonResponse(token, status=status.HTTP_200_OK)
@@ -588,10 +589,10 @@ def timeline(request):
 
         response = TimelineSerializer(timeline, many=True).data
 
-        # now = datetime.now(tz=get_current_timezone())
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
+        now = datetime.now(tz=get_current_timezone())
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
         return JsonResponse({'posts': response}, status=status.HTTP_200_OK)
 
 
@@ -681,9 +682,9 @@ def timeline_status(request):
             'notifications': notification if notification else None
         }
 
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
         return JsonResponse(response, status=status.HTTP_200_OK)
 
 
