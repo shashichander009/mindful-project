@@ -26,7 +26,6 @@ from .serializers import (
     FollowingsSerializer,
     UserProfileSerializer,
     TimelineSerializer,
-    FollowingCardSerializer,
 )
 from .models import (
     User,
@@ -387,23 +386,10 @@ class FollowersView(APIView):
         for follower in followers:
 
             follower_user_id = follower.followed_by_id.user_id
+            followerobj = create_user_obj(user, follower_user_id)
+            followerslist.append(followerobj)
 
-            followerobj = get_object_or_404(User, user_id=follower_user_id)
-
-            followed_by_me = Followings.objects.filter(follower_id=follower_user_id,
-                                                       followed_by_id=request_user_id)
-            followerdict = {
-                'name': followerobj.name,
-                'id': follower_user_id,
-                'username': followerobj.username,
-                'profile_picture': followerobj.profile_picture,
-                'is_followed': True if followed_by_me else False,
-                'is_own_id': True if follower_user_id == request_user_id else False,
-            }
-
-            followerslist.append(followerdict)
-
-        followersresponse = FollowingCardSerializer(
+        followersresponse = UserProfileSerializer(
             followerslist, many=True).data
 
         if followers:
@@ -427,22 +413,10 @@ class FollowingsView(APIView):
         for following in followings:
 
             following_user_id = following.follower_id.user_id
-            followingobj = get_object_or_404(User, user_id=following_user_id)
+            followingobj = create_user_obj(user, following_user_id)
+            followinglist.append(followingobj)
 
-            followed_by_me = Followings.objects.filter(follower_id=following_user_id,
-                                                       followed_by_id=request_user_id)
-            followingdict = {
-                'name': followingobj.name,
-                'id': following_user_id,
-                'username': followingobj.username,
-                'profile_picture': followingobj.profile_picture,
-                'is_followed': True if followed_by_me else False,
-                'is_own_id': True if following_user_id == request_user_id else False,
-            }
-
-            followinglist.append(followingdict)
-
-        followingsresponse = FollowingCardSerializer(
+        followingsresponse = UserProfileSerializer(
             followinglist, many=True).data
 
         if followings:
