@@ -636,7 +636,8 @@ def timeline(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def profile_timeline(request, user_id):
+def get_profile(request, user_id):
+
     if request.method == 'GET':
         request_user_id = request.user.user_id
 
