@@ -238,97 +238,94 @@ class SinglePostView(APIView):
                             status=status.HTTP_200_OK)
 
 
-class LikePostView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def LikePostView(request, post_id):
     """API to Like/Unlike a specific post"""
+    request_user = request.user
+    request.data['post_id'] = post_id
+    request.data['user_id'] = request_user.user_id
 
-    permission_classes = (IsAuthenticated, )
+    get_object_or_404(Post, post_id=post_id)
 
-    def post(self, request, post_id):
-        request_user = request.user
-        request.data['post_id'] = post_id
-        request.data['user_id'] = request_user.user_id
+    like = Likes.objects.filter(post_id=post_id,
+                                user_id=request_user.user_id)
 
-        get_object_or_404(Post, post_id=post_id)
-
-        like = Likes.objects.filter(post_id=post_id,
-                                    user_id=request_user.user_id)
-
-        if not like:
-            like_serializer = LikeSerializer(data=request.data)
-            if like_serializer.is_valid():
-                like_serializer.save()
-                return JsonResponse({"detail": "Like Added"},
-                                    status=status.HTTP_200_OK)
-            return JsonResponse({"detail": "Invalid Data"},
-                                status=status.HTTP_400_BAD_REQUEST)
-        like.delete()
-        return JsonResponse({"detail": "Like Removed"},
-                            status=status.HTTP_200_OK)
+    if not like:
+        like_serializer = LikeSerializer(data=request.data)
+        if like_serializer.is_valid():
+            like_serializer.save()
+            return JsonResponse({"detail": "Like Added"},
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Invalid Data"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    like.delete()
+    return JsonResponse({"detail": "Like Removed"},
+                        status=status.HTTP_200_OK)
 
 
-class BookmarkPostView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def BookmarkPostView(request, post_id):
     """API to Bookmark/Remove bookmark a specific post"""
 
-    permission_classes = (IsAuthenticated, )
+    request_user = request.user
+    request.data['post_id'] = post_id
+    request.data['user_id'] = request_user.user_id
 
-    def post(self, request, post_id):
-        request_user = request.user
-        request.data['post_id'] = post_id
-        request.data['user_id'] = request_user.user_id
+    get_object_or_404(Post, post_id=post_id)
 
-        get_object_or_404(Post, post_id=post_id)
+    bookmark = Bookmarks.objects.filter(post_id=post_id,
+                                        user_id=request_user.user_id)
 
-        bookmark = Bookmarks.objects.filter(post_id=post_id,
-                                            user_id=request_user.user_id)
+    if not bookmark:
+        bookmark_serializer = BookmarkSerializer(data=request.data)
+        if bookmark_serializer.is_valid():
+            bookmark_serializer.save()
+            return JsonResponse({"detail": "Bookmark Added"},
+                                status=status.HTTP_200_OK)
+        return JsonResponse({"detail": "Invalid Data"},
+                            status=status.HTTP_400_BAD_REQUEST)
+    bookmark.delete()
+    return JsonResponse({"detail": "Bookmark Removed"},
+                        status=status.HTTP_200_OK)
 
-        if not bookmark:
-            bookmark_serializer = BookmarkSerializer(data=request.data)
-            if bookmark_serializer.is_valid():
-                bookmark_serializer.save()
-                return JsonResponse({"detail": "Bookmark Added"},
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def ReportPostView(request, post_id):
+    """API to Report/Remove report a specific post"""
+
+    post = get_object_or_404(Post, post_id=post_id)
+
+    request.data._mutable = True
+
+    request_user = request.user
+    request.data['post_id'] = post_id
+    request.data['user_id'] = request_user.user_id
+    request.data['remarks'] = request.POST.get('remarks')
+
+    post_user_id = post.user_id.user_id
+    request_user_id = request_user.user_id
+
+    if post_user_id is not request_user_id:
+
+        report = ReportPost.objects.filter(post_id=post_id,
+                                           user_id=request_user_id)
+        if not report:
+            report_serializer = ReportSerializer(data=request.data)
+            if report_serializer.is_valid():
+                report_serializer.save()
+                return JsonResponse({"detail": "Report Added"},
                                     status=status.HTTP_200_OK)
             return JsonResponse({"detail": "Invalid Data"},
                                 status=status.HTTP_400_BAD_REQUEST)
-        bookmark.delete()
-        return JsonResponse({"detail": "Bookmark Removed"},
+        report.delete()
+        return JsonResponse({"detail": "Report Removed"},
                             status=status.HTTP_200_OK)
 
-
-class ReportPostView(APIView):
-    """API to Report/Remove report a specific post"""
-
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request, post_id):
-
-        post = get_object_or_404(Post, post_id=post_id)
-
-        request_user = request.user
-        request.data['post_id'] = post_id
-        request.data['user_id'] = request_user.user_id
-
-        post_user_id = post.user_id.user_id
-        request_user_id = request_user.user_id
-
-        if post_user_id is not request_user_id:
-
-            report = ReportPost.objects.filter(post_id=post_id,
-                                               user_id=request_user_id)
-
-            if not report:
-                report_serializer = ReportSerializer(data=request.data)
-                if report_serializer.is_valid():
-                    report_serializer.save()
-                    return JsonResponse({"detail": "Report Added"},
-                                        status=status.HTTP_200_OK)
-                return JsonResponse({"detail": "Invalid Data"},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            report.delete()
-            return JsonResponse({"detail": "Report Removed"},
-                                status=status.HTTP_200_OK)
-
-        return JsonResponse({"detail": "You can't report your own post"},
-                            status=status.HTTP_401_UNAUTHORIZED)
+    return JsonResponse({"detail": "You can't report your own post"},
+                        status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['POST'])
@@ -358,99 +355,97 @@ def update_password(request):
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
 
-class FollowView(APIView):
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def FollowView(request, user_id):
     """API to follow/unfollow users"""
 
-    permission_classes = (IsAuthenticated, )
+    user_to_be_followed = get_object_or_404(User, user_id=user_id)
 
-    def post(self, request, user_id):
+    user_to_be_followed_user_id = user_to_be_followed.user_id
+    request_user_id = request.user.user_id
 
-        user_to_be_followed = get_object_or_404(User, user_id=user_id)
+    request.data['follower_id'] = user_id
+    request.data['followed_by_id'] = request_user_id
 
-        user_to_be_followed_user_id = user_to_be_followed.user_id
-        request_user_id = request.user.user_id
+    if user_to_be_followed_user_id is not request_user_id:
 
-        request.data['follower_id'] = user_id
-        request.data['followed_by_id'] = request_user_id
+        following = Followings.objects.filter(
+            follower_id=user_to_be_followed_user_id,
+            followed_by_id=request_user_id)
 
-        if user_to_be_followed_user_id is not request_user_id:
+        if not following:
+            follow_serializer = FollowingsSerializer(data=request.data)
+            if follow_serializer.is_valid():
+                print("start following")
+                follow_serializer.save()
+                return JsonResponse({"detail": "Started Following"},
+                                    status=status.HTTP_200_OK)
 
-            following = Followings.objects.filter(
-                follower_id=user_to_be_followed_user_id,
-                followed_by_id=request_user_id)
-
-            if not following:
-                follow_serializer = FollowingsSerializer(data=request.data)
-                if follow_serializer.is_valid():
-                    print("start following")
-                    follow_serializer.save()
-                    return JsonResponse({"detail": "Started Following"},
-                                        status=status.HTTP_200_OK)
-
-                return JsonResponse({"detail": "Invalid Data"},
-                                    status=status.HTTP_400_BAD_REQUEST)
-            following.delete()
-            return JsonResponse({"detail": "Unfollowed"},
-                                status=status.HTTP_200_OK)
-
-        return JsonResponse({"detail": "You can't follow yourself"},
-                            status=status.HTTP_401_UNAUTHORIZED)
-
-
-class FollowersView(APIView):
-    """API to get followers"""
-
-    def get(self, request, user_id):
-
-        request_user_id = request.user.user_id
-
-        user = get_object_or_404(User, user_id=user_id)
-
-        followers = Followings.objects.filter(follower_id=user.user_id)
-
-        followerslist = []
-
-        for follower in followers:
-
-            follower_user_id = follower.followed_by_id.user_id
-            followerobj = create_user_obj(user, follower_user_id)
-            followerslist.append(followerobj)
-
-        followersresponse = UserProfileSerializer(
-            followerslist, many=True).data
-
-        if followers:
-            return JsonResponse({"followers": followersresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followers"},
+            return JsonResponse({"detail": "Invalid Data"},
+                                status=status.HTTP_400_BAD_REQUEST)
+        following.delete()
+        return JsonResponse({"detail": "Unfollowed"},
                             status=status.HTTP_200_OK)
 
+    return JsonResponse({"detail": "You can't follow yourself"},
+                        status=status.HTTP_401_UNAUTHORIZED)
 
-class FollowingsView(APIView):
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def FollowersView(request, user_id):
+    """API to get followers"""
+    request_user_id = request.user.user_id
+
+    user = get_object_or_404(User, user_id=user_id)
+
+    followers = Followings.objects.filter(follower_id=user.user_id)
+
+    followerslist = []
+
+    for follower in followers:
+
+        follower_user_id = follower.followed_by_id.user_id
+        follow_user = get_object_or_404(User, user_id=follower_user_id)
+        followerobj = create_user_obj(follow_user, request_user_id)
+        followerslist.append(followerobj)
+
+    followersresponse = UserProfileSerializer(
+        followerslist, many=True).data
+
+    if followers:
+        return JsonResponse({"followers": followersresponse},
+                            status=status.HTTP_200_OK)
+    return JsonResponse({"detail": "no followers"},
+                        status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def FollowingsView(request, user_id):
     """API to get followings"""
 
-    def get(self, request, user_id):
+    request_user_id = request.user.user_id
+    user = get_object_or_404(User, user_id=user_id)
+    followings = Followings.objects.filter(followed_by_id=user.user_id)
 
-        request_user_id = request.user.user_id
-        user = get_object_or_404(User, user_id=user_id)
-        followings = Followings.objects.filter(followed_by_id=user.user_id)
+    followinglist = []
 
-        followinglist = []
+    for following in followings:
 
-        for following in followings:
+        following_user_id = following.follower_id.user_id
+        followingobj = create_user_obj(user, following_user_id)
+        followinglist.append(followingobj)
 
-            following_user_id = following.follower_id.user_id
-            followingobj = create_user_obj(user, following_user_id)
-            followinglist.append(followingobj)
+    followingsresponse = UserProfileSerializer(
+        followinglist, many=True).data
 
-        followingsresponse = UserProfileSerializer(
-            followinglist, many=True).data
-
-        if followings:
-            return JsonResponse({"followings": followingsresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followings"},
+    if followings:
+        return JsonResponse({"followings": followingsresponse},
                             status=status.HTTP_200_OK)
+    return JsonResponse({"detail": "no followings"},
+                        status=status.HTTP_200_OK)
 
 
 def create_user_obj(user, request_user_id):
@@ -543,49 +538,42 @@ def search(request):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class SuggestionView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def SuggestionView(request):
     """API for Suggest User Profiles to follow"""
 
-    permission_classes = [IsAuthenticated]
+    request_data = request.GET
+    request_user_id = request.user.user_id
 
-    def get(self, request):
-        request_data = request.GET
+    if 'items' in request_data:
+        items = int(request_data.get('items', 0))
 
-        if 'items' in request_data:
-            items = int(request_data.get('items', 0))
+        followings = Followings.objects.filter(
+            followed_by_id=request_user_id)
 
-            user_id = request.user.user_id
+        followinglist = [f.follower_id.user_id for f in followings]
 
-            followings = list(
-                Followings.objects.filter(followed_by_id=user_id).
-                values('follower_id'))
+        suggestions = User.objects.exclude(user_id__in=followinglist)
 
-            followinglist = []
-            for following in followings:
-                followinglist.append(following['follower_id'])
+        suggestionlist = []
 
-            followinglist.append(user_id)
+        for suggestion in suggestions:
+            if len(suggestionlist) < items:
+                suggestion_user_id = suggestion.user_id
+                user = get_object_or_404(User, user_id=suggestion_user_id)
+                suggestionobj = create_user_obj(
+                    user, request_user_id)
+                suggestionlist.append(suggestionobj)
 
-            suggestions = User.objects.exclude(user_id__in=followinglist)
+        suggestionsresponse = UserProfileSerializer(
+            suggestionlist, many=True).data
 
-            suggestionsresponse = {
-                "suggestions": []
-            }
+        return JsonResponse({"suggestions": suggestionsresponse},
+                            status=status.HTTP_200_OK)
 
-            for suggestion in suggestions:
-                if len(suggestionsresponse["suggestions"]) < items:
-                    suggestiondict = {}
-                    suggestion_user_id = suggestion.user_id
-                    suggestiondict['name'] = suggestion.name
-                    suggestiondict['id'] = suggestion_user_id
-                    suggestiondict['username'] = suggestion.username
-                    suggestionsresponse["suggestions"].append(suggestiondict)
-
-            return JsonResponse(suggestionsresponse,
-                                status=status.HTTP_200_OK)
-
-        return JsonResponse({"detail": "No items parameter given to search"},
-                            status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse({"detail": "No items parameter given to search"},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
