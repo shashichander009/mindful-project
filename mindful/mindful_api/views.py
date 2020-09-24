@@ -522,39 +522,34 @@ class SuggestionView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
         request_data = request.GET
+        request_user_id = request.user.user_id
 
         if 'items' in request_data:
             items = int(request_data.get('items', 0))
 
-            user_id = request.user.user_id
+            followings = Followings.objects.filter(
+                followed_by_id=request_user_id)
 
-            followings = list(
-                Followings.objects.filter(followed_by_id=user_id).
-                values('follower_id'))
-
-            followinglist = []
-            for following in followings:
-                followinglist.append(following['follower_id'])
-
-            followinglist.append(user_id)
+            followinglist = [f.follower_id.user_id for f in followings]
 
             suggestions = User.objects.exclude(user_id__in=followinglist)
 
-            suggestionsresponse = {
-                "suggestions": []
-            }
+            suggestionlist = []
 
             for suggestion in suggestions:
-                if len(suggestionsresponse["suggestions"]) < items:
-                    suggestiondict = {}
+                if len(suggestionlist) < items:
                     suggestion_user_id = suggestion.user_id
-                    suggestiondict['name'] = suggestion.name
-                    suggestiondict['id'] = suggestion_user_id
-                    suggestiondict['username'] = suggestion.username
-                    suggestionsresponse["suggestions"].append(suggestiondict)
+                    user = get_object_or_404(User, user_id=suggestion_user_id)
+                    suggestionobj = create_user_obj(
+                        user, request_user_id)
+                    suggestionlist.append(suggestionobj)
 
-            return JsonResponse(suggestionsresponse,
+            suggestionsresponse = UserProfileSerializer(
+                suggestionlist, many=True).data
+
+            return JsonResponse({"suggestions": suggestionsresponse},
                                 status=status.HTTP_200_OK)
 
         return JsonResponse({"detail": "No items parameter given to search"},
