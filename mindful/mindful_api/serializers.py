@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework import exceptions
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 from .models import User, Post, Likes, Bookmarks, ReportPost, Followings
 
@@ -91,7 +93,19 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_tags(self, post):
         tags = {}
-        tags['hashtag'] = re.findall("[#]\w+", post)
+        if post == '':
+            tags['hashtag'] = []
+            tags['word'] = []
+            tags['sentiment'] = ''
+            return tags
+
+        hashtag_list = re.findall("[#]\w+", post)
+        tags['hashtag'] = [tag.lower() for tag in hashtag_list]
+        stop_words = set(stopwords.words('english'))
+        word_tokens = word_tokenize(post)
+        filtered_sentence = [w for w in word_tokens if w not in stop_words]
+        post_word_list = [word for word in filtered_sentence if word.isalnum()]
+        tags['word'] = post_word_list
 
         analyzer = SentimentIntensityAnalyzer()
         vs = analyzer.polarity_scores(post)

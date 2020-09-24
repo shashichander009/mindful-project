@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime,  timedelta
+import operator
 
 from django.http import JsonResponse
 from django.contrib.auth import (
@@ -347,8 +348,6 @@ class FollowView(APIView):
 
         if user_to_be_followed_user_id is not request_user_id:
 
-            print(user_to_be_followed_user_id)
-            print(request_user_id)
             following = Followings.objects.filter(
                 follower_id=user_to_be_followed_user_id,
                 followed_by_id=request_user_id)
@@ -414,7 +413,7 @@ class FollowersView(APIView):
 
 
 class FollowingsView(APIView):
-    """API to get followers"""
+    """API to get followings"""
 
     def get(self, request, user_id):
 
@@ -648,7 +647,8 @@ def timeline(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def profile_timeline(request, user_id):
+def get_profile(request, user_id):
+
     if request.method == 'GET':
         request_user_id = request.user.user_id
 
@@ -702,17 +702,17 @@ def timeline_status(request):
 
         new_posts = Post.objects.filter(user_id__in=following_ids,
                                         created_at__range=(last_request_time, now))\
-                                .order_by('-created_at')
+            .order_by('-created_at')
 
         new_follows = Followings.objects.filter(follower_id=request_user_id,
                                                 follow_time__range=(last_request_time, now))\
-                                        .order_by('-follow_time')\
-                                        .select_related('followed_by_id')
+            .order_by('-follow_time')\
+            .select_related('followed_by_id')
 
         new_likes = Likes.objects.filter(post_id__user_id__user_id=request_user_id,
                                          like_time__range=(last_request_time, now))\
-                                 .order_by('-like_time')\
-                                 .select_related('user_id')
+            .order_by('-like_time')\
+            .select_related('user_id')
 
         notification = []
         for f in new_follows:
@@ -735,3 +735,31 @@ def timeline_status(request):
         # request_user.last_active = now
         # request_user.save()
         return JsonResponse(response, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def get_trending_topics(request):
+    if request.method == 'GET':
+
+        now = datetime.now(tz=get_current_timezone())
+        start_datetime = now + timedelta(days=-3)
+
+        all_tags = Post.objects.values('tags')\
+                               .filter(created_at__range=(start_datetime, now))
+
+        trending_dict = {}
+        for tag in all_tags:
+            hashtag_list = tag.get('tags').get('hashtag', [])
+            for hashtag in hashtag_list:
+                trending_dict[hashtag] = trending_dict.get(hashtag, 0) + 1
+
+            word_list = tag.get('tags').get('word', [])
+            for word in word_list:
+                trending_dict[word] = trending_dict.get(word, 0) + 1
+
+        trending = dict(sorted(trending_dict.items(),
+                               key=operator.itemgetter(1),
+                               reverse=True)[:10])
+
+        return JsonResponse(trending, status=status.HTTP_200_OK)
