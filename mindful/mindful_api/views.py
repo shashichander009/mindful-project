@@ -452,31 +452,6 @@ class FollowingsView(APIView):
                             status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def get_profile(request):
-    request_data = request.GET
-
-    if 'userid' in request_data:
-        try:
-            user_id = int(request_data.get('userid', ''))
-        except ValueError:
-            return JsonResponse({"detail": "Invalid User ID"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        user = get_object_or_404(User,
-                                 user_id=user_id)
-    else:
-        if request.auth:
-            user = request.user
-        else:
-            return JsonResponse({"detail": "No User ID Given"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-    user_serializer = UserSerializer(user)
-    return JsonResponse(user_serializer.data,
-                        status=status.HTTP_200_OK)
-
-
 def create_user_obj(user, request_user_id):
     """Creates an object with all the necessary details of a specific user
        according the requested user"""
@@ -624,7 +599,11 @@ def timeline(request):
         users_to_show_in_timeline = following_ids.copy()
         users_to_show_in_timeline.append(request_user_id)
 
+        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
+        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
+
         posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
+                            .exclude(post_id__in=reported_posts_ids)\
                             .order_by('-created_at')\
                             .select_related('user_id')
 
