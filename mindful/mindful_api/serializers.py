@@ -224,9 +224,11 @@ class ReportSerializer(serializers.ModelSerializer):
     def create(self, validate_data):
         post_id = validate_data.get('post_id', '')
         user_id = validate_data.get('user_id', '')
+        remarks = validate_data.get('remarks', '')
         report = ReportPost.objects.create(
             post_id=post_id,
-            user_id=user_id
+            user_id=user_id,
+            remarks=remarks,
         )
         return report
 
@@ -236,7 +238,8 @@ class ReportSerializer(serializers.ModelSerializer):
             'report_id',
             'post_id',
             'user_id',
-            'report_time'
+            'remarks',
+            'report_time',
         ]
 
 

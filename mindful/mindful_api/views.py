@@ -276,9 +276,12 @@ class ReportPostView(APIView):
 
         post = get_object_or_404(Post, post_id=post_id)
 
+        request.data._mutable = True
+
         request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
+        request.data['remarks'] = request.POST.get('remarks')
 
         post_user_id = post.user_id.user_id
         request_user_id = request_user.user_id
@@ -287,7 +290,6 @@ class ReportPostView(APIView):
 
             report = ReportPost.objects.filter(post_id=post_id,
                                                user_id=request_user_id)
-
             if not report:
                 report_serializer = ReportSerializer(data=request.data)
                 if report_serializer.is_valid():
