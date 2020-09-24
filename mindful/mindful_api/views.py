@@ -451,31 +451,6 @@ class FollowingsView(APIView):
                             status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def get_profile(request):
-    request_data = request.GET
-
-    if 'userid' in request_data:
-        try:
-            user_id = int(request_data.get('userid', ''))
-        except ValueError:
-            return JsonResponse({"detail": "Invalid User ID"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-        user = get_object_or_404(User,
-                                 user_id=user_id)
-    else:
-        if request.auth:
-            user = request.user
-        else:
-            return JsonResponse({"detail": "No User ID Given"},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-    user_serializer = UserSerializer(user)
-    return JsonResponse(user_serializer.data,
-                        status=status.HTTP_200_OK)
-
-
 def create_user_obj(user, request_user_id):
     """Creates an object with all the necessary details of a specific user
        according the requested user"""
