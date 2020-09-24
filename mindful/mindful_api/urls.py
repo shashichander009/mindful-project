@@ -47,7 +47,7 @@ urlpatterns = [
     path('suggest/',
          views.suggestions_view,
          name='suggest'),
-    path('profile/<user_id>/',
+    path('profile/',
          views.get_profile,
          name='profile'),
     path('timeline-status/',
