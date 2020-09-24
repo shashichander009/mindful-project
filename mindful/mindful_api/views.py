@@ -624,7 +624,11 @@ def timeline(request):
         users_to_show_in_timeline = following_ids.copy()
         users_to_show_in_timeline.append(request_user_id)
 
+        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
+        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
+
         posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
+                            .exclude(post_id__in=reported_posts_ids)\
                             .order_by('-created_at')\
                             .select_related('user_id')
 
