@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from django.http import JsonResponse
 from django.contrib.auth import (
     login as django_login,
     logout as django_logout
 )
 from django.shortcuts import get_object_or_404
+from django.utils.timezone import get_current_timezone
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -631,6 +634,11 @@ def timeline(request):
             timeline.append(timeline_obj)
 
         response = TimelineSerializer(timeline, many=True).data
+
+        # now = datetime.now(tz=get_current_timezone())
+        # request_user = User.objects.get(user_id=request_user_id)
+        # request_user.last_active = now
+        # request_user.save()
         return JsonResponse({'posts': response}, status=status.HTTP_200_OK)
 
 
@@ -667,3 +675,60 @@ def get_profile(request, user_id):
         response = TimelineSerializer(timeline, many=True).data
         return JsonResponse({"profile": profile_response, 'posts': response},
                             status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def timeline_status(request):
+    """Checks if there is any new post from the users, whom the requesting user follows
+       Checks if there is any activity on the requesting user's profile -
+            1. Someone Liked his/her post
+            2. Someone started following him/her
+       (Between the time interval of current request and last request)
+    """
+
+    if request.method == 'GET':
+        request_user_id = request.user.user_id
+
+        now = datetime.now(tz=get_current_timezone())
+        last_request_time = User.objects.get(user_id=request_user_id)\
+                                        .last_active
+
+        followings = Followings.objects.filter(followed_by_id=request_user_id)
+        following_ids = [f.follower_id.user_id for f in followings]
+
+        new_posts = Post.objects.filter(user_id__in=following_ids,
+                                        created_at__range=(last_request_time, now))\
+                                .order_by('-created_at')
+
+        new_follows = Followings.objects.filter(follower_id=request_user_id,
+                                                follow_time__range=(last_request_time, now))\
+                                        .order_by('-follow_time')\
+                                        .select_related('followed_by_id')
+
+        new_likes = Likes.objects.filter(post_id__user_id__user_id=request_user_id,
+                                         like_time__range=(last_request_time, now))\
+                                 .order_by('-like_time')\
+                                 .select_related('user_id')
+
+        notification = []
+        for f in new_follows:
+            s = '{} (@{}) Started Following You'.format(f.followed_by_id.name,
+                                                        f.followed_by_id.username)
+            notification.append(s)
+
+        for l in new_likes:
+            s = '{} (@{}) Liked Your Post'.format(l.user_id.name,
+                                                  l.user_id.username)
+            notification.append(s)
+
+        response = {
+            'has_new_post': True if new_posts else False,
+            'has_new_notification': True if any([new_follows, new_likes]) else False,
+            'notifications': notification if notification else None
+        }
+
+        # request_user = User.objects.get(user_id=request_user_id)
+        # request_user.last_active = now
+        # request_user.save()
+        return JsonResponse(response, status=status.HTTP_200_OK)
