@@ -52,7 +52,7 @@ urlpatterns = [
          name='timeline'),
     path('profile/<user_id>/',
          views.get_profile,
-         name='profile-timeline'),
+         name='profile'),
     path('timeline-status/',
          views.timeline_status,
          name='timeline-status'),

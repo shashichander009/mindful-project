@@ -348,8 +348,6 @@ class FollowView(APIView):
 
         if user_to_be_followed_user_id is not request_user_id:
 
-            print(user_to_be_followed_user_id)
-            print(request_user_id)
             following = Followings.objects.filter(
                 follower_id=user_to_be_followed_user_id,
                 followed_by_id=request_user_id)
@@ -415,7 +413,7 @@ class FollowersView(APIView):
 
 
 class FollowingsView(APIView):
-    """API to get followers"""
+    """API to get followings"""
 
     def get(self, request, user_id):
 
@@ -700,17 +698,17 @@ def timeline_status(request):
 
         new_posts = Post.objects.filter(user_id__in=following_ids,
                                         created_at__range=(last_request_time, now))\
-                                .order_by('-created_at')
+            .order_by('-created_at')
 
         new_follows = Followings.objects.filter(follower_id=request_user_id,
                                                 follow_time__range=(last_request_time, now))\
-                                        .order_by('-follow_time')\
-                                        .select_related('followed_by_id')
+            .order_by('-follow_time')\
+            .select_related('followed_by_id')
 
         new_likes = Likes.objects.filter(post_id__user_id__user_id=request_user_id,
                                          like_time__range=(last_request_time, now))\
-                                 .order_by('-like_time')\
-                                 .select_related('user_id')
+            .order_by('-like_time')\
+            .select_related('user_id')
 
         notification = []
         for f in new_follows:
