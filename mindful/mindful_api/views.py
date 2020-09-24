@@ -586,9 +586,17 @@ def suggestions_view(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def get_profile(request, user_id):
+def get_profile(request):
 
     if request.method == 'GET':
+
+        request_data = request.GET
+
+        if 'user_id' in request_data:
+            user_id = int(request_data.get('user_id'))
+        else:
+            user_id = request.user.user_id
+
         request_user_id = request.user.user_id
 
         followed_by_me = Followings.objects.filter(follower_id=user_id,
