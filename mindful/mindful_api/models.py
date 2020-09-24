@@ -53,7 +53,7 @@ class User(AbstractBaseUser):
     bio = models.CharField(max_length=256, null=True)
     profile_picture = models.ImageField(upload_to='user_images/', null=True)
     allow_posting = models.BooleanField(default=True)
-    last_active = models.DateTimeField(auto_now_add=True)
+    last_active = models.DateTimeField(null=True)
     is_superuser = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     security_que = models.TextField(max_length=256, null=True)
