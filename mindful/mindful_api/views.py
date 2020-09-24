@@ -38,9 +38,9 @@ from .models import (
 from .documents import UserDocument, PostDocument
 
 
-class LoginView(APIView):
-
-    def post(self, request):
+@api_view(['POST'])
+def login_view(request):
+    if request.method == "POST":
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -59,11 +59,9 @@ class LoginView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-class LogoutView(APIView):
-
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request):
+@api_view(['POST'])
+def logout_view(request):
+    if request.method == "POST":
         django_logout(request)
         return JsonResponse({"detail": "Logout Successful"},
                             status=status.HTTP_200_OK)
