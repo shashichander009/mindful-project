@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime,  timedelta
+import operator
 
 from django.http import JsonResponse
 from django.contrib.auth import (
@@ -732,3 +733,31 @@ def timeline_status(request):
         # request_user.last_active = now
         # request_user.save()
         return JsonResponse(response, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def get_trending_topics(request):
+    if request.method == 'GET':
+
+        now = datetime.now(tz=get_current_timezone())
+        start_datetime = now + timedelta(days=-3)
+
+        all_tags = Post.objects.values('tags')\
+                               .filter(created_at__range=(start_datetime, now))
+
+        trending_dict = {}
+        for tag in all_tags:
+            hashtag_list = tag.get('tags').get('hashtag', [])
+            for hashtag in hashtag_list:
+                trending_dict[hashtag] = trending_dict.get(hashtag, 0) + 1
+
+            word_list = tag.get('tags').get('word', [])
+            for word in word_list:
+                trending_dict[word] = trending_dict.get(word, 0) + 1
+
+        trending = dict(sorted(trending_dict.items(),
+                               key=operator.itemgetter(1),
+                               reverse=True)[:10])
+
+        return JsonResponse(trending, status=status.HTTP_200_OK)

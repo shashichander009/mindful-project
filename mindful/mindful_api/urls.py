@@ -55,5 +55,8 @@ urlpatterns = [
          name='profile-timeline'),
     path('timeline-status/',
          views.timeline_status,
-         name='timeline-status')
+         name='timeline-status'),
+    path('trending/',
+         views.get_trending_topics,
+         name='get-trending-topics'),
 ]
