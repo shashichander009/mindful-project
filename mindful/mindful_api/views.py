@@ -238,7 +238,7 @@ class SinglePostView(APIView):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated, ))
-def LikePostView(request, post_id):
+def like_post_view(request, post_id):
     """API to Like/Unlike a specific post"""
 
     if request.method == 'POST':
@@ -266,7 +266,7 @@ def LikePostView(request, post_id):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated, ))
-def BookmarkPostView(request, post_id):
+def bookmark_post_view(request, post_id):
     """API to Bookmark/Remove bookmark a specific post"""
 
     if request.method == 'POST':
@@ -294,7 +294,7 @@ def BookmarkPostView(request, post_id):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated, ))
-def ReportPostView(request, post_id):
+def report_post_view(request, post_id):
     """API to Report/Remove report a specific post"""
 
     if request.method == 'POST':
@@ -357,7 +357,7 @@ def update_password(request):
 
 @api_view(['POST'])
 @permission_classes((IsAuthenticated, ))
-def FollowView(request, user_id):
+def follow_view(request, user_id):
     """API to follow/unfollow users"""
 
     if request.method == 'POST':
@@ -395,7 +395,7 @@ def FollowView(request, user_id):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def FollowersView(request, user_id):
+def followers_view(request, user_id):
     """API to get followers"""
 
     if request.method == 'GET':
@@ -427,7 +427,7 @@ def FollowersView(request, user_id):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def FollowingsView(request, user_id):
+def followings_view(request, user_id):
     """API to get followings"""
 
     if request.method == 'GET':
@@ -546,7 +546,7 @@ def search(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def SuggestionView(request):
+def suggestions_view(request):
     """API for Suggest User Profiles to follow"""
 
     if request.method == 'GET':
