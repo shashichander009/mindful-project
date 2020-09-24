@@ -56,7 +56,7 @@ def login_view(request):
 
             return JsonResponse(token, status=status.HTTP_200_OK)
         return JsonResponse({"detail": "Login Failed"},
-                            status=status.HTTP_401_UNAUTHORIZED)
+                            status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
