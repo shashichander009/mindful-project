@@ -38,9 +38,9 @@ from .models import (
 from .documents import UserDocument, PostDocument
 
 
-class LoginView(APIView):
-
-    def post(self, request):
+@api_view(['POST'])
+def login_view(request):
+    if request.method == "POST":
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -50,7 +50,8 @@ class LoginView(APIView):
             jwt = TokenObtainPairSerializer.get_token(user=user)
             token = {
                 'refresh': str(jwt),
-                'access': str(jwt.access_token)
+                'access': str(jwt.access_token),
+                'is_first_login': True if not user.last_active else False
             }
 
             return JsonResponse(token, status=status.HTTP_200_OK)
@@ -58,11 +59,9 @@ class LoginView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-class LogoutView(APIView):
-
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request):
+@api_view(['POST'])
+def logout_view(request):
+    if request.method == "POST":
         django_logout(request)
         return JsonResponse({"detail": "Logout Successful"},
                             status=status.HTTP_200_OK)
@@ -140,11 +139,34 @@ class PostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request):
-        posts = Post.objects.all().order_by('-created_at')
-        post_serializer = PostSerializer(posts, many=True)
-        return JsonResponse(post_serializer.data,
-                            status=status.HTTP_200_OK,
-                            safe=False)
+        request_user_id = request.user.user_id
+
+        followings = Followings.objects.filter(followed_by_id=request_user_id)
+        following_ids = [f.follower_id.user_id for f in followings]
+
+        users_to_show_in_timeline = following_ids.copy()
+        users_to_show_in_timeline.append(request_user_id)
+
+        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
+        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
+
+        posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
+                            .exclude(post_id__in=reported_posts_ids)\
+                            .order_by('-created_at')\
+                            .select_related('user_id')
+
+        timeline = []
+        for post in posts:
+            timeline_obj = create_post_obj(post, request_user_id)
+            timeline.append(timeline_obj)
+
+        response = TimelineSerializer(timeline, many=True).data
+
+        now = datetime.now(tz=get_current_timezone())
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
+        return JsonResponse({'timeline posts': response}, status=status.HTTP_200_OK)
 
     def post(self, request):
         request.data._mutable = True
@@ -170,8 +192,11 @@ class SinglePostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, post_id):
+        request_user_id = request.user.user_id
+
         post = get_object_or_404(Post, post_id=post_id)
-        post_serializer = PostSerializer(post)
+        post_obj = create_post_obj(post, request_user_id)
+        post_serializer = TimelineSerializer(post_obj)
         return JsonResponse(post_serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, post_id):
@@ -561,40 +586,6 @@ def SuggestionView(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def timeline(request):
-    if request.method == 'GET':
-        request_user_id = request.user.user_id
-
-        followings = Followings.objects.filter(followed_by_id=request_user_id)
-        following_ids = [f.follower_id.user_id for f in followings]
-
-        users_to_show_in_timeline = following_ids.copy()
-        users_to_show_in_timeline.append(request_user_id)
-
-        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
-        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
-
-        posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
-                            .exclude(post_id__in=reported_posts_ids)\
-                            .order_by('-created_at')\
-                            .select_related('user_id')
-
-        timeline = []
-        for post in posts:
-            timeline_obj = create_post_obj(post, request_user_id)
-            timeline.append(timeline_obj)
-
-        response = TimelineSerializer(timeline, many=True).data
-
-        # now = datetime.now(tz=get_current_timezone())
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
-        return JsonResponse({'posts': response}, status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-@permission_classes((IsAuthenticated, ))
 def get_profile(request, user_id):
 
     if request.method == 'GET':
@@ -679,9 +670,9 @@ def timeline_status(request):
             'notifications': notification if notification else None
         }
 
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
         return JsonResponse(response, status=status.HTTP_200_OK)
 
 

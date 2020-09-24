@@ -10,8 +10,8 @@ app_name = 'api'
 
 urlpatterns = [
     path('doc/', schema_view),
-    path('login/', views.LoginView.as_view(), name='login'),
-    path('logout/', views.LogoutView.as_view(), name='logout'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
     path('token/refresh/',
          jwt_views.TokenRefreshView.as_view(),
          name='token_refresh'),
@@ -47,9 +47,6 @@ urlpatterns = [
     path('suggest/',
          views.SuggestionView,
          name='suggest'),
-    path('timeline/',
-         views.timeline,
-         name='timeline'),
     path('profile/<user_id>/',
          views.get_profile,
          name='profile'),

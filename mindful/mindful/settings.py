@@ -82,7 +82,7 @@ SIMPLE_JWT = {
     'ISSUER': None,
 
     'AUTH_HEADER_TYPES': ('Bearer',),
-    'USER_ID_FIELD': 'id',
+    'USER_ID_FIELD': 'user_id',
     'USER_ID_CLAIM': 'user_id',
 
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
@@ -93,13 +93,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-
-    'USER_ID_FIELD': 'user_id',
 }
 
 ELASTICSEARCH_DSL = {
     'default': {
-        # 'hosts': 'http://localhost:9200'
         'hosts': 'https://h1f5688lbo:qrasnnwl7l@mindful-testing-5655155969.ap-southeast-2.bonsaisearch.net:443'
     }
 }
