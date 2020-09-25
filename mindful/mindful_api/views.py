@@ -395,33 +395,33 @@ def follow_view(request, user_id):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def followers_view(request, user_id):
+def followers_view(request):
     """API to get followers"""
 
     if request.method == 'GET':
-
+        request_data = request.GET
         request_user_id = request.user.user_id
+
+        if 'user_id' in request_data:
+            user_id = request_data.get('user_id', '')
+        else:
+            user_id = request_user_id
 
         user = get_object_or_404(User, user_id=user_id)
 
-        followers = Followings.objects.filter(follower_id=user.user_id)
+        followers = Followings.objects.filter(follower_id=user.user_id)\
+                                      .order_by('-follow_time')
+        followers_ids = [f.followed_by_id for f in followers]
 
-        followerslist = []
+        followers_list = []
+        for follower in followers_ids:
+            follower_obj = create_user_obj(follower, request_user_id)
+            followers_list.append(follower_obj)
 
-        for follower in followers:
+        followers_response = UserProfileSerializer(
+            followers_list, many=True).data
 
-            follower_user_id = follower.followed_by_id.user_id
-            follow_user = get_object_or_404(User, user_id=follower_user_id)
-            followerobj = create_user_obj(follow_user, request_user_id)
-            followerslist.append(followerobj)
-
-        followersresponse = UserProfileSerializer(
-            followerslist, many=True).data
-
-        if followers:
-            return JsonResponse({"followers": followersresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followers"},
+        return JsonResponse({"followers": followers_response},
                             status=status.HTTP_200_OK)
 
 
@@ -724,7 +724,8 @@ def get_bookmarks(request):
         bookmarks = Bookmarks.objects.filter(user_id=request_user_id)
         bookmarked_post_ids = [b.post_id.post_id for b in bookmarks]
 
-        posts = Post.objects.filter(post_id__in=bookmarked_post_ids).order_by('-created_at')
+        posts = Post.objects.filter(
+            post_id__in=bookmarked_post_ids).order_by('-created_at')
 
         bookmarked_posts = []
         for post in posts:
