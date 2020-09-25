@@ -379,7 +379,6 @@ def follow_view(request, user_id):
             if not following:
                 follow_serializer = FollowingsSerializer(data=request.data)
                 if follow_serializer.is_valid():
-                    print("start following")
                     follow_serializer.save()
                     return JsonResponse({"detail": "Started Following"},
                                         status=status.HTTP_200_OK)
@@ -392,6 +391,7 @@ def follow_view(request, user_id):
 
         return JsonResponse({"detail": "You can't follow yourself"},
                             status=status.HTTP_401_UNAUTHORIZED)
+
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
