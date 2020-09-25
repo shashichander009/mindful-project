@@ -26,7 +26,6 @@ from .serializers import (
     FollowingsSerializer,
     UserProfileSerializer,
     TimelineSerializer,
-    FollowingCardSerializer,
 )
 from .models import (
     User,
@@ -39,9 +38,9 @@ from .models import (
 from .documents import UserDocument, PostDocument
 
 
-class LoginView(APIView):
-
-    def post(self, request):
+@api_view(['POST'])
+def login_view(request):
+    if request.method == "POST":
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -51,19 +50,18 @@ class LoginView(APIView):
             jwt = TokenObtainPairSerializer.get_token(user=user)
             token = {
                 'refresh': str(jwt),
-                'access': str(jwt.access_token)
+                'access': str(jwt.access_token),
+                'is_first_login': True if not user.last_active else False
             }
 
             return JsonResponse(token, status=status.HTTP_200_OK)
         return JsonResponse({"detail": "Login Failed"},
-                            status=status.HTTP_401_UNAUTHORIZED)
+                            status=status.HTTP_404_NOT_FOUND)
 
 
-class LogoutView(APIView):
-
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request):
+@api_view(['POST'])
+def logout_view(request):
+    if request.method == "POST":
         django_logout(request)
         return JsonResponse({"detail": "Logout Successful"},
                             status=status.HTTP_200_OK)
@@ -141,11 +139,34 @@ class PostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request):
-        posts = Post.objects.all().order_by('-created_at')
-        post_serializer = PostSerializer(posts, many=True)
-        return JsonResponse(post_serializer.data,
-                            status=status.HTTP_200_OK,
-                            safe=False)
+        request_user_id = request.user.user_id
+
+        followings = Followings.objects.filter(followed_by_id=request_user_id)
+        following_ids = [f.follower_id.user_id for f in followings]
+
+        users_to_show_in_timeline = following_ids.copy()
+        users_to_show_in_timeline.append(request_user_id)
+
+        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
+        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
+
+        posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
+                            .exclude(post_id__in=reported_posts_ids)\
+                            .order_by('-created_at')\
+                            .select_related('user_id')
+
+        timeline = []
+        for post in posts:
+            timeline_obj = create_post_obj(post, request_user_id)
+            timeline.append(timeline_obj)
+
+        response = TimelineSerializer(timeline, many=True).data
+
+        now = datetime.now(tz=get_current_timezone())
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
+        return JsonResponse({'timeline': response}, status=status.HTTP_200_OK)
 
     def post(self, request):
         request.data._mutable = True
@@ -171,8 +192,11 @@ class SinglePostView(APIView):
     permission_classes = (IsAuthenticated, )
 
     def get(self, request, post_id):
+        request_user_id = request.user.user_id
+
         post = get_object_or_404(Post, post_id=post_id)
-        post_serializer = PostSerializer(post)
+        post_obj = create_post_obj(post, request_user_id)
+        post_serializer = TimelineSerializer(post_obj)
         return JsonResponse(post_serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, post_id):
@@ -212,12 +236,12 @@ class SinglePostView(APIView):
                             status=status.HTTP_200_OK)
 
 
-class LikePostView(APIView):
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def like_post_view(request, post_id):
     """API to Like/Unlike a specific post"""
 
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request, post_id):
+    if request.method == 'POST':
         request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
@@ -240,12 +264,12 @@ class LikePostView(APIView):
                             status=status.HTTP_200_OK)
 
 
-class BookmarkPostView(APIView):
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def bookmark_post_view(request, post_id):
     """API to Bookmark/Remove bookmark a specific post"""
 
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request, post_id):
+    if request.method == 'POST':
         request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
@@ -268,18 +292,18 @@ class BookmarkPostView(APIView):
                             status=status.HTTP_200_OK)
 
 
-class ReportPostView(APIView):
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def report_post_view(request, post_id):
     """API to Report/Remove report a specific post"""
 
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request, post_id):
-
+    if request.method == 'POST':
         post = get_object_or_404(Post, post_id=post_id)
-
+        request.data._mutable = True
         request_user = request.user
         request.data['post_id'] = post_id
         request.data['user_id'] = request_user.user_id
+        request.data['remarks'] = request.POST.get('remarks')
 
         post_user_id = post.user_id.user_id
         request_user_id = request_user.user_id
@@ -371,84 +395,66 @@ class FollowView(APIView):
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
-class FollowersView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def followers_view(request):
     """API to get followers"""
 
-    def get(self, request, user_id):
-
+    if request.method == 'GET':
+        request_data = request.GET
         request_user_id = request.user.user_id
+
+        if 'user_id' in request_data:
+            user_id = request_data.get('user_id', '')
+        else:
+            user_id = request_user_id
 
         user = get_object_or_404(User, user_id=user_id)
 
-        followers = Followings.objects.filter(follower_id=user.user_id)
+        followers = Followings.objects.filter(follower_id=user.user_id)\
+                                      .order_by('-follow_time')
+        followers_ids = [f.followed_by_id for f in followers]
 
-        followerslist = []
+        followers_list = []
+        for follower in followers_ids:
+            follower_obj = create_user_obj(follower, request_user_id)
+            followers_list.append(follower_obj)
 
-        for follower in followers:
+        followers_response = UserProfileSerializer(
+            followers_list, many=True).data
 
-            follower_user_id = follower.followed_by_id.user_id
-
-            followerobj = get_object_or_404(User, user_id=follower_user_id)
-
-            followed_by_me = Followings.objects.filter(follower_id=follower_user_id,
-                                                       followed_by_id=request_user_id)
-            followerdict = {
-                'name': followerobj.name,
-                'id': follower_user_id,
-                'username': followerobj.username,
-                'profile_picture': followerobj.profile_picture,
-                'is_followed': True if followed_by_me else False,
-                'is_own_id': True if follower_user_id == request_user_id else False,
-            }
-
-            followerslist.append(followerdict)
-
-        followersresponse = FollowingCardSerializer(
-            followerslist, many=True).data
-
-        if followers:
-            return JsonResponse({"followers": followersresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followers"},
+        return JsonResponse({"followers": followers_response},
                             status=status.HTTP_200_OK)
 
 
-class FollowingsView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def followings_view(request):
     """API to get followings"""
 
-    def get(self, request, user_id):
-
+    if request.method == 'GET':
+        request_data = request.GET
         request_user_id = request.user.user_id
+
+        if 'user_id' in request_data:
+            user_id = request_data.get('user_id', '')
+        else:
+            user_id = request_user_id
+
         user = get_object_or_404(User, user_id=user_id)
+
         followings = Followings.objects.filter(followed_by_id=user.user_id)
+        following_ids = [f.follower_id for f in followings]
 
-        followinglist = []
+        following_list = []
+        for following in following_ids:
+            following_obj = create_user_obj(following, request_user_id)
+            following_list.append(following_obj)
 
-        for following in followings:
+        followings_response = UserProfileSerializer(
+            following_list, many=True).data
 
-            following_user_id = following.follower_id.user_id
-            followingobj = get_object_or_404(User, user_id=following_user_id)
-
-            followed_by_me = Followings.objects.filter(follower_id=following_user_id,
-                                                       followed_by_id=request_user_id)
-            followingdict = {
-                'name': followingobj.name,
-                'id': following_user_id,
-                'username': followingobj.username,
-                'profile_picture': followingobj.profile_picture,
-                'is_followed': True if followed_by_me else False,
-                'is_own_id': True if following_user_id == request_user_id else False,
-            }
-
-            followinglist.append(followingdict)
-
-        followingsresponse = FollowingCardSerializer(
-            followinglist, many=True).data
-
-        if followings:
-            return JsonResponse({"followings": followingsresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followings"},
+        return JsonResponse({"followings": followings_response},
                             status=status.HTTP_200_OK)
 
 
@@ -496,6 +502,8 @@ def create_post_obj(post, request_user_id):
         'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
         'is_liked': True if liked_by_me else False,
         'is_bookmarked': True if bookmarked_by_me else False,
+        'user_id': post.user_id.user_id,
+        'is_owner': True if post.user_id.user_id == request_user_id else False,
     }
 
     return post_obj
@@ -542,45 +550,40 @@ def search(request):
                             status=status.HTTP_400_BAD_REQUEST)
 
 
-class SuggestionView(APIView):
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def suggestions_view(request):
     """API for Suggest User Profiles to follow"""
 
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
+    if request.method == 'GET':
         request_data = request.GET
+        request_user_id = request.user.user_id
 
         if 'items' in request_data:
             items = int(request_data.get('items', 0))
 
-            user_id = request.user.user_id
+            followings = Followings.objects.filter(
+                followed_by_id=request_user_id)
 
-            followings = list(
-                Followings.objects.filter(followed_by_id=user_id).
-                values('follower_id'))
-
-            followinglist = []
-            for following in followings:
-                followinglist.append(following['follower_id'])
-
-            followinglist.append(user_id)
+            followinglist = [f.follower_id.user_id for f in followings]
+            followinglist.append(request_user_id)
 
             suggestions = User.objects.exclude(user_id__in=followinglist)
 
-            suggestionsresponse = {
-                "suggestions": []
-            }
+            suggestionlist = []
 
             for suggestion in suggestions:
-                if len(suggestionsresponse["suggestions"]) < items:
-                    suggestiondict = {}
+                if len(suggestionlist) < items:
                     suggestion_user_id = suggestion.user_id
-                    suggestiondict['name'] = suggestion.name
-                    suggestiondict['id'] = suggestion_user_id
-                    suggestiondict['username'] = suggestion.username
-                    suggestionsresponse["suggestions"].append(suggestiondict)
+                    user = get_object_or_404(User, user_id=suggestion_user_id)
+                    suggestionobj = create_user_obj(
+                        user, request_user_id)
+                    suggestionlist.append(suggestionobj)
 
-            return JsonResponse(suggestionsresponse,
+            suggestionsresponse = UserProfileSerializer(
+                suggestionlist, many=True).data
+
+            return JsonResponse({"suggestions": suggestionsresponse},
                                 status=status.HTTP_200_OK)
 
         return JsonResponse({"detail": "No items parameter given to search"},
@@ -589,43 +592,17 @@ class SuggestionView(APIView):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def timeline(request):
-    if request.method == 'GET':
-        request_user_id = request.user.user_id
-
-        followings = Followings.objects.filter(followed_by_id=request_user_id)
-        following_ids = [f.follower_id.user_id for f in followings]
-
-        users_to_show_in_timeline = following_ids.copy()
-        users_to_show_in_timeline.append(request_user_id)
-
-        reported_posts = ReportPost.objects.filter(user_id=request_user_id)
-        reported_posts_ids = [p.post_id.post_id for p in reported_posts]
-
-        posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
-                            .exclude(post_id__in=reported_posts_ids)\
-                            .order_by('-created_at')\
-                            .select_related('user_id')
-
-        timeline = []
-        for post in posts:
-            timeline_obj = create_post_obj(post, request_user_id)
-            timeline.append(timeline_obj)
-
-        response = TimelineSerializer(timeline, many=True).data
-
-        # now = datetime.now(tz=get_current_timezone())
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
-        return JsonResponse({'posts': response}, status=status.HTTP_200_OK)
-
-
-@api_view(['GET'])
-@permission_classes((IsAuthenticated, ))
-def get_profile(request, user_id):
+def get_profile(request):
 
     if request.method == 'GET':
+
+        request_data = request.GET
+
+        if 'user_id' in request_data:
+            user_id = int(request_data.get('user_id'))
+        else:
+            user_id = request.user.user_id
+
         request_user_id = request.user.user_id
 
         followed_by_me = Followings.objects.filter(follower_id=user_id,
@@ -707,9 +684,9 @@ def timeline_status(request):
             'notifications': notification if notification else None
         }
 
-        # request_user = User.objects.get(user_id=request_user_id)
-        # request_user.last_active = now
-        # request_user.save()
+        request_user = User.objects.get(user_id=request_user_id)
+        request_user.last_active = now
+        request_user.save()
         return JsonResponse(response, status=status.HTTP_200_OK)
 
 
@@ -740,3 +717,25 @@ def get_trending_topics(request):
         trending = list(top_10.keys())
 
         return JsonResponse(trending, status=status.HTTP_200_OK, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def get_bookmarks(request):
+
+    if request.method == 'GET':
+        request_user_id = request.user.user_id
+
+        bookmarks = Bookmarks.objects.filter(user_id=request_user_id)
+        bookmarked_post_ids = [b.post_id.post_id for b in bookmarks]
+
+        posts = Post.objects.filter(
+            post_id__in=bookmarked_post_ids).order_by('-created_at')
+
+        bookmarked_posts = []
+        for post in posts:
+            bookmark_obj = create_post_obj(post, request_user_id)
+            bookmarked_posts.append(bookmark_obj)
+
+        response = TimelineSerializer(bookmarked_posts, many=True).data
+        return JsonResponse({"bookmarked_posts": response}, status=status.HTTP_200_OK)

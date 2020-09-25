@@ -103,7 +103,7 @@ class PostSerializer(serializers.ModelSerializer):
         tags['hashtag'] = [tag for tag in hashtag_list]
         stop_words = set(stopwords.words('english'))
 
-        post_without_hashtags = " ".join(filter(lambda x:x[0]!='#', post.split()))
+        post_without_hashtags = " ".join(filter(lambda x: x[0] != '#', post.split()))
         word_tokens = word_tokenize(post_without_hashtags)
         filtered_sentence = [w for w in word_tokens if w not in stop_words]
         post_word_list = [word for word in filtered_sentence if word.isalnum()]
@@ -226,9 +226,11 @@ class ReportSerializer(serializers.ModelSerializer):
     def create(self, validate_data):
         post_id = validate_data.get('post_id', '')
         user_id = validate_data.get('user_id', '')
+        remarks = validate_data.get('remarks', '')
         report = ReportPost.objects.create(
             post_id=post_id,
-            user_id=user_id
+            user_id=user_id,
+            remarks=remarks,
         )
         return report
 
@@ -238,7 +240,8 @@ class ReportSerializer(serializers.ModelSerializer):
             'report_id',
             'post_id',
             'user_id',
-            'report_time'
+            'remarks',
+            'report_time',
         ]
 
 
@@ -288,12 +291,5 @@ class TimelineSerializer(serializers.Serializer):
     likes_count = serializers.IntegerField()
     is_liked = serializers.BooleanField()
     is_bookmarked = serializers.BooleanField()
-
-
-class FollowingCardSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    name = serializers.CharField()
-    username = serializers.CharField()
-    profile_picture = serializers.ImageField()
-    is_followed = serializers.BooleanField()
-    is_own_id = serializers.BooleanField()
+    user_id = serializers.CharField()
+    is_owner = serializers.BooleanField()
