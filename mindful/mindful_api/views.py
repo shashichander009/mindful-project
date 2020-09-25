@@ -712,3 +712,24 @@ def get_trending_topics(request):
                                reverse=True)[:10])
 
         return JsonResponse(trending, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def get_bookmarks(request):
+
+    if request.method == 'GET':
+        request_user_id = request.user.user_id
+
+        bookmarks = Bookmarks.objects.filter(user_id=request_user_id)
+        bookmarked_post_ids = [b.post_id.post_id for b in bookmarks]
+
+        posts = Post.objects.filter(post_id__in=bookmarked_post_ids).order_by('-created_at')
+
+        bookmarked_posts = []
+        for post in posts:
+            bookmark_obj = create_post_obj(post, request_user_id)
+            bookmarked_posts.append(bookmark_obj)
+
+        response = TimelineSerializer(bookmarked_posts, many=True).data
+        return JsonResponse({"bookmarked_posts": response}, status=status.HTTP_200_OK)
