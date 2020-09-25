@@ -41,7 +41,7 @@ urlpatterns = [
     path('followers/',
          views.followers_view,
          name='followers'),
-    path('followings/<user_id>/',
+    path('followings/',
          views.followings_view,
          name='followings'),
     path('search/',

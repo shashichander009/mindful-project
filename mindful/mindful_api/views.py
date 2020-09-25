@@ -427,30 +427,32 @@ def followers_view(request):
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
-def followings_view(request, user_id):
+def followings_view(request):
     """API to get followings"""
 
     if request.method == 'GET':
-
+        request_data = request.GET
         request_user_id = request.user.user_id
+
+        if 'user_id' in request_data:
+            user_id = request_data.get('user_id', '')
+        else:
+            user_id = request_user_id
+
         user = get_object_or_404(User, user_id=user_id)
+
         followings = Followings.objects.filter(followed_by_id=user.user_id)
+        following_ids = [f.follower_id for f in followings]
 
-        followinglist = []
+        following_list = []
+        for following in following_ids:
+            following_obj = create_user_obj(following, request_user_id)
+            following_list.append(following_obj)
 
-        for following in followings:
+        followings_response = UserProfileSerializer(
+            following_list, many=True).data
 
-            following_user_id = following.follower_id.user_id
-            followingobj = create_user_obj(user, following_user_id)
-            followinglist.append(followingobj)
-
-        followingsresponse = UserProfileSerializer(
-            followinglist, many=True).data
-
-        if followings:
-            return JsonResponse({"followings": followingsresponse},
-                                status=status.HTTP_200_OK)
-        return JsonResponse({"detail": "no followings"},
+        return JsonResponse({"followings": followings_response},
                             status=status.HTTP_200_OK)
 
 
