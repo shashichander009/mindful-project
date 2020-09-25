@@ -166,7 +166,7 @@ class PostView(APIView):
         request_user = User.objects.get(user_id=request_user_id)
         request_user.last_active = now
         request_user.save()
-        return JsonResponse({'timeline posts': response}, status=status.HTTP_200_OK)
+        return JsonResponse({'timeline': response}, status=status.HTTP_200_OK)
 
     def post(self, request):
         request.data._mutable = True
@@ -498,6 +498,8 @@ def create_post_obj(post, request_user_id):
         'likes_count': Likes.objects.filter(post_id=post.post_id).count(),
         'is_liked': True if liked_by_me else False,
         'is_bookmarked': True if bookmarked_by_me else False,
+        'user_id': post.user_id.user_id,
+        'is_owner': True if post.user_id.user_id == request_user_id else False,
     }
 
     return post_obj

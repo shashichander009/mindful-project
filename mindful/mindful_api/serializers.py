@@ -289,3 +289,5 @@ class TimelineSerializer(serializers.Serializer):
     likes_count = serializers.IntegerField()
     is_liked = serializers.BooleanField()
     is_bookmarked = serializers.BooleanField()
+    user_id = serializers.CharField()
+    is_owner = serializers.BooleanField()
