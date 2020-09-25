@@ -356,15 +356,14 @@ def update_password(request):
                             status=status.HTTP_417_EXPECTATION_FAILED)
 
 
-class FollowView(APIView):
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+def follow_view(request, user_id):
     """API to follow/unfollow users"""
 
-    permission_classes = (IsAuthenticated, )
-
-    def post(self, request, user_id):
+    if request.method == 'POST':
 
         user_to_be_followed = get_object_or_404(User, user_id=user_id)
-
         user_to_be_followed_user_id = user_to_be_followed.user_id
         request_user_id = request.user.user_id
 
@@ -393,7 +392,6 @@ class FollowView(APIView):
 
         return JsonResponse({"detail": "You can't follow yourself"},
                             status=status.HTTP_401_UNAUTHORIZED)
-
 
 @api_view(['GET'])
 @permission_classes((IsAuthenticated, ))
@@ -716,7 +714,7 @@ def get_trending_topics(request):
                              reverse=True)[:10])
         trending = list(top_10.keys())
 
-        return JsonResponse(trending, status=status.HTTP_200_OK, safe=False)
+        return JsonResponse({"trending": trending}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
