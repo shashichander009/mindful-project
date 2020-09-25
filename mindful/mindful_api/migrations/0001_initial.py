@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('post_id', models.AutoField(primary_key=True, serialize=False)),
                 ('content', models.TextField(max_length=256, null=True)),
-                ('image', models.ImageField(null=True, upload_to=mindful_api.models.upload_location_posts)),
+                ('image', models.ImageField(null=True, upload_to='post_images/')),
                 ('has_media', models.BooleanField(default=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('tags', django.contrib.postgres.fields.jsonb.JSONField()),

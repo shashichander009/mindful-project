@@ -734,8 +734,9 @@ def get_trending_topics(request):
             for word in word_list:
                 trending_dict[word] = trending_dict.get(word, 0) + 1
 
-        trending = dict(sorted(trending_dict.items(),
-                               key=operator.itemgetter(1),
-                               reverse=True)[:10])
+        top_10 = dict(sorted(trending_dict.items(),
+                             key=operator.itemgetter(1),
+                             reverse=True)[:10])
+        trending = list(top_10.keys())
 
-        return JsonResponse(trending, status=status.HTTP_200_OK)
+        return JsonResponse(trending, status=status.HTTP_200_OK, safe=False)

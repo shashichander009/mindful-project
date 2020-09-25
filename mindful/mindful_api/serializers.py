@@ -100,9 +100,11 @@ class PostSerializer(serializers.ModelSerializer):
             return tags
 
         hashtag_list = re.findall("[#]\w+", post)
-        tags['hashtag'] = [tag.lower() for tag in hashtag_list]
+        tags['hashtag'] = [tag for tag in hashtag_list]
         stop_words = set(stopwords.words('english'))
-        word_tokens = word_tokenize(post)
+
+        post_without_hashtags = " ".join(filter(lambda x:x[0]!='#', post.split()))
+        word_tokens = word_tokenize(post_without_hashtags)
         filtered_sentence = [w for w in word_tokens if w not in stop_words]
         post_word_list = [word for word in filtered_sentence if word.isalnum()]
         tags['word'] = post_word_list

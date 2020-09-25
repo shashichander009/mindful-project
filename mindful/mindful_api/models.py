@@ -33,14 +33,14 @@ class CustomUserManager(BaseUserManager):
         return user
 
 
-def upload_location_users(instance, filename):
-    filebase, extension = filename.split('.')
-    return 'user_images/%s.%s' % (instance.user_id, extension)
+# def upload_location_users(instance, filename):
+#     filebase, extension = filename.split('.')
+#     return 'user_images/%s.%s' % (instance.user_id, extension)
 
 
-def upload_location_posts(instance, filename):
-    filebase, extension = filename.split('.')
-    return 'post_images/%s.%s' % (instance.post_id, extension)
+# def upload_location_posts(instance, filename):
+#     filebase, extension = filename.split('.')
+#     return 'post_images/%s.%s' % (instance.post_id, extension)
 
 
 class User(AbstractBaseUser):
