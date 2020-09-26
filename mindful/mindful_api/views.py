@@ -8,6 +8,7 @@ from django.contrib.auth import (
 )
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import get_current_timezone
+from django.db.models import Q as django_Q
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -150,7 +151,11 @@ class PostView(APIView):
         reported_posts = ReportPost.objects.filter(user_id=request_user_id)
         reported_posts_ids = [p.post_id.post_id for p in reported_posts]
 
-        posts = Post.objects.filter(user_id__in=users_to_show_in_timeline)\
+        likes = Likes.objects.filter(user_id=request_user_id)
+        liked_post_ids = [l.post_id.post_id for l in likes]
+
+        posts = Post.objects.filter(django_Q(user_id__in=users_to_show_in_timeline) | 
+                                    django_Q(post_id__in=liked_post_ids))\
                             .exclude(post_id__in=reported_posts_ids)\
                             .order_by('-created_at')\
                             .select_related('user_id')
@@ -737,3 +742,38 @@ def get_bookmarks(request):
 
         response = TimelineSerializer(bookmarked_posts, many=True).data
         return JsonResponse({"bookmarked_posts": response}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+def get_likes(request):
+
+    if request.method == 'GET':
+        request_data = request.GET
+        request_user_id = request.user.user_id
+
+        if 'user_id' in request_data:
+            user_id = request_data.get('user_id', '')
+        else:
+            user_id = request_user_id
+
+        user = get_object_or_404(User, user_id=user_id)
+
+        likes = Likes.objects.filter(user_id=user.user_id)
+        liked_post_ids = [l.post_id.post_id for l in likes]
+
+        liked_posts = Post.objects.filter(post_id__in=liked_post_ids)\
+                            .order_by('-created_at')\
+                            .select_related('user_id')
+
+        liked_posts_list = []
+        for post in liked_posts:
+            post_obj = create_post_obj(post, request_user_id)
+            liked_posts_list.append(post_obj)
+
+        likes_response = TimelineSerializer(
+            liked_posts_list, many=True).data
+
+        return JsonResponse({"liked_posts": likes_response},
+                            status=status.HTTP_200_OK)
